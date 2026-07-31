@@ -33,7 +33,7 @@ The raw dataset comprises financial metrics, demographic profiles, verification 
 
 ## 🛠️ Key Features & Feature Engineering
 
-To facilitate meaningful sub-population and cohort analysis, continuous variables were binned into domain-specific categories:
+To perform group-level benchmarking, custom binning logic was applied across numerical features:
 
 ### 1. Income Segmentation (`Income_Group`)
 * **Low Income:** < $300,000
