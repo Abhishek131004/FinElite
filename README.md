@@ -3,16 +3,12 @@
 A comprehensive Exploratory Data Analysis (EDA) of credit card bank customer data using Python, Pandas, Seaborn, and Matplotlib. This project investigates key financial indicators, customer risk profiles, demographic trends, and the drivers behind credit limit allocations.
 
 ## 📑 Table of Contents
-
--Project Overview
-
--Dataset Structure
-
--Key Features & Engineering
-
--Analysis Architecture
-
--Findings & Observations
+1. [Project Overview](#-project-overview)
+2. [Dataset Structure](#-dataset-structure)
+3. [Key Features & Feature Engineering](#-key-features--feature-engineering)
+4. [Analysis Architecture](#-analysis-architecture)
+5. [Key Findings & Portfolio Insights](#-key-findings--portfolio-insights)
+6. [Requirements & Setup](#-requirements--setup)
 
 ## 📌 Project Overview
 
