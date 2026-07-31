@@ -105,25 +105,35 @@ Global Ranking: Ranks all numeric attributes by their correlation strength again
 ## 💡 Key Findings & Observations
 
 ## 1. Credit Limit Allocation DriversPrimary Underwriting DeterminantsAnnual Income as the Core Pillar: 
-The correlation between Annual_Income and Credit_Limit reveals that income tier is the strongest determinant for line assignment. Credit Score Tier Segmentation:Customers in Excellent (>= 800) and Very Good (750-799) tiers receive significantly higher average credit limits compared to Fair or Poor tiers.The aggregation matrix confirms that higher credit score bands show lower average Number_of_Defaults and Missed_Payments.Bank Relationship & Tenure: The correlation between Years_With_Bank and Credit_Limit alongside groupby("Years_With_Bank") demonstrates that bank loyalty and historical tenure yield gradual credit limit enhancements.
-
+-The correlation between Annual_Income and Credit_Limit reveals that income tier is the strongest determinant for line assignment. 
+-Credit Score Tier Segmentation:Customers in Excellent (>= 800) and Very Good (750-799) tiers receive significantly higher average credit limits compared to Fair or Poor tiers.
+-The aggregation matrix confirms that higher credit score bands show lower average Number_of_Defaults and Missed_Payments.
+-Bank Relationship & Tenure: The correlation between Years_With_Bank and Credit_Limit alongside groupby("Years_With_Bank") demonstrates that bank loyalty and historical tenure yield gradual credit limit enhancements.
 
 
 ## 2. Customer Liquidity & Asset ExposureSavings & Investment Correlation: 
-Evaluating correlation metrics for Savings_Balance and Investment_Value against Credit_Limit shows that customers with larger liquid safety nets represent lower credit risk, justifying higher line assignments.Top 10 High-Net-Worth Profile: Isolating the top 10 customers by Credit_Limit and Savings_Balance shows a concentrated overlap in specific Occupation classes, demonstrating where the bank's total credit exposure is concentrated.
+-Evaluating correlation metrics for Savings_Balance and Investment_Value against Credit_Limit shows that customers with larger liquid safety nets represent lower credit risk, justifying higher line assignments.
+-Top 10 High-Net-Worth Profile: Isolating the top 10 customers by Credit_Limit and Savings_Balance shows a concentrated overlap in specific Occupation classes, demonstrating where the bank's total credit exposure is concentrated.
 
 ## 3. Debt Burden & Risk ProfilingDebt-to-Income (DTI) & Monthly ObligationsEMI vs. Credit Limit: 
-Analyzing EMI_Per_Month alongside Debt_To_Income_Ratio highlights customer leverage levels. High DTI ratios correlate inversely with credit score health.Credit Utilization Patterns: Evaluating Credit_Utilization provides insight into how heavily customers depend on their existing credit lines:High Utilization + High DTI: Signals over-leveraged borrowers who are vulnerable to missing payments.Low Utilization + High Credit Score: Represents prime candidates for credit line increases or cross-selling investment products.Default & Missed Payment SortingSorting records by Number_of_Defaults and Missed_Payments isolates the highest-risk portfolio segment. These accounts show low credit scores combined with elevated debt ratios
+-Analyzing EMI_Per_Month alongside Debt_To_Income_Ratio highlights customer leverage levels. High DTI ratios correlate inversely with credit score health.
+-Credit Utilization Patterns: Evaluating Credit_Utilization provides insight into how heavily customers depend on their existing credit lines:High Utilization + High DTI: Signals over-leveraged borrowers who are vulnerable to missing payments.
+-Low Utilization + High Credit Score: Represents prime candidates for credit line increases or cross-selling investment products.
+-Default & Missed Payment Sorting: Sorting records by Number_of_Defaults and Missed_Payments isolates the highest-risk portfolio segment. These accounts show low credit scores combined with elevated debt ratios
 
 ## 4. Demographic & Occupational Profiling:
-Occupation. High-income roles yield higher average credit limits and savings, whereas occupations with higher income volatility display wider min-max spreads in Credit_Score.Age Cohorts (Age_Group)18–24 cohorts show lower average income and credit limits, while peak earning and asset accumulation occur in the 35–44 and 45–54 brackets.Employment TypeSalaried vs. Self-Employed benchmarking shows distinct income stability profiles, influencing how banks determine baseline risk limits.Residential StatusHomeowners and mortgage holders display higher asset levels (Savings_Balance) compared to renters.
+-Occupation. High-income roles yield higher average credit limits and savings, whereas occupations with higher income volatility display wider min-max spreads in Credit_Score.
+-Age Cohorts (Age_Group)18–24 cohorts show lower average income and credit limits, while peak earning and asset accumulation occur in the 35–44 and 45–54 brackets.
+-Employment TypeSalaried vs. Self-Employed benchmarking shows distinct income stability profiles, influencing how banks determine baseline risk limits.
+-Residential StatusHomeowners and mortgage holders display higher asset levels (Savings_Balance) compared to renters.
 
 ## 5. Compliance, Fraud, & Verification AuditFraud Flag Segmentation: 
-The aggregation on Fraud_Flag shows that flagged accounts exhibit significantly higher average Missed_Payments and Number_of_Defaults, alongside reduced credit limits.KYC & PAN Verification Impact: Accounts with completed KYC_Status and verified PAN_Verified maintain higher average credit scores and higher credit line allocations compared to unverified or pending accounts, confirming that identity verification reduces default risk.
+-The aggregation on Fraud_Flag shows that flagged accounts exhibit significantly higher average Missed_Payments and Number_of_Defaults, alongside reduced credit limits.
+-KYC & PAN Verification Impact: Accounts with completed KYC_Status and verified PAN_Verified maintain higher average credit scores and higher credit line allocations compared to unverified or pending accounts, confirming that identity verification reduces default risk.
 
-Primary Credit Limit Driver: Annual_Income exhibits a strong positive correlation with Credit_Limit, followed by Credit_Score and overall tenure with the bank (Years_With_Bank).
+-Primary Credit Limit Driver: Annual_Income exhibits a strong positive correlation with Credit_Limit, followed by Credit_Score and overall tenure with the bank (Years_With_Bank).
 
-Risk Indicator Divergence: High Debt_To_Income_Ratio and higher instances of Missed_Payments strongly align with lower credit score bands and elevated Number_of_Defaults.
+-Risk Indicator Divergence: High Debt_To_Income_Ratio and higher instances of Missed_Payments strongly align with lower credit score bands and elevated Number_of_Defaults.
 
-Compliance Correlation: Accounts with verified PAN and completed KYC_Status show higher average credit score benchmarks and higher credit limits. is this correct readme 
+-Compliance Correlation: Accounts with verified PAN and completed KYC_Status show higher average credit score benchmarks and higher credit limits. is this correct readme 
 
