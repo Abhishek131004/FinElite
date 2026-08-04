@@ -84,21 +84,21 @@ Income Tiering (Income_Group):
 
 Bins Annual_Income into 5 income brackets using the explicit function income_group:
 
-# Low Income: < ₹3,00,000 (< ₹3 Lakhs)
-# Lower Middle: ₹3,00,000 – ₹5,99,999 (₹3L – ₹6L)
-# Middle Income: ₹6,00,000 – ₹9,99,999 (₹6L – ₹10L)
-# Upper Middle: ₹10,00,000 – ₹14,99,999 (₹10L – ₹15L)
-# High Income: ≥ ₹15,00,000 (≥ ₹15 Lakhs)
+* **Low Income:** < ₹3,00,000 (< ₹3 Lakhs)
+* **Lower Middle:** ₹3,00,000 – ₹5,99,999 (₹3L – ₹6L)
+* **Middle Income:** ₹6,00,000 – ₹9,99,999 (₹6L – ₹10L)
+* **Upper Middle:** ₹10,00,000 – ₹14,99,999 (₹10L – ₹15L)
+* **High Income:** $\ge$ ₹15,00,000 ($\ge$ ₹15 Lakhs)
 
 Credit Score Tiering (Credit_Score_Category):
 Maps numerical credit scores (Credit_Score) into standard credit rating tiers via score_category:
 
-# Excellent: ≥ 800
-# Very Good: 750 – 799
-# Good: 700 – 749
-# Fair: 650 – 699
-# Poor: 550 – 649
-# Very Poor: < 550
+* **Excellent:** $\ge$ 800
+* **Very Good:** 750 – 799
+* **Good:** 700 – 749
+* **Fair:** 650 – 699
+* **Poor:** 550 – 649
+* **Very Poor:** < 550
 
 Demographic Cohort Generation (Age_Group):
 Categorizes customer age (Age) into life-stage brackets via age_group:
