@@ -36,11 +36,11 @@ The raw dataset comprises financial metrics, demographic profiles, verification 
 To perform group-level benchmarking, custom binning logic was applied across numerical features:
 
 ### 1. Income Segmentation (`Income_Group`)
-* **Low Income:** < $300,000
-* **Lower Middle:** $300,000 – $599,999
-* **Middle Income:** $600,000 – $999,999
-* **Upper Middle:** $1,000,000 – $1,499,999
-* **High Income:** $\ge$ $1,500,000
+* **Low Income:** < ₹3,00,000 (< ₹3 Lakhs)
+* **Lower Middle:** ₹3,00,000 – ₹5,99,999 (₹3L – ₹6L)
+* **Middle Income:** ₹6,00,000 – ₹9,99,999 (₹6L – ₹10L)
+* **Upper Middle:** ₹10,00,000 – ₹14,99,999 (₹10L – ₹15L)
+* **High Income:** $\ge$ ₹15,00,000 ($\ge$ ₹15 Lakhs)
 
 ### 2. Credit Score Tiering (`Credit_Score_Category`)
 * **Excellent:** $\ge$ 800
