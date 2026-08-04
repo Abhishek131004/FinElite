@@ -12,13 +12,13 @@ A comprehensive Exploratory Data Analysis (EDA) of credit card bank customer dat
 
 ## 📌 Project Overview
 
-Understanding credit limit allocation and customer risk profiles is vital for risk mitigation and financial product structuring in retail banking. This analysis performs structured data exploration on bank customer records to identify:
+-Understanding credit limit allocation and customer risk profiles is vital for risk mitigation and financial product structuring in retail banking. This analysis performs structured data exploration on bank customer records to identify:
 
-Key predictors of Credit Limit (e.g., Annual Income, Credit Score, Debt-to-Income Ratio).
+-Key predictors of Credit Limit (e.g., Annual Income, Credit Score, Debt-to-Income Ratio).
 
-Customer demographic segmentation based on age, occupation, and income tiers.
+-Customer demographic segmentation based on age, occupation, and income tiers.
 
-Behavioral risk markers linked to default rates, missed payments, and fraud flags.
+-Behavioral risk markers linked to default rates, missed payments, and fraud flags.
 
 ## 📊 Dataset Structure
 
@@ -52,137 +52,107 @@ To perform group-level benchmarking, custom binning logic was applied across num
   
 ## 🔄 Analysis Architecture
 ## Phase 1: Ingestion & Structural Integrity Audit
-The pipeline begins by ingesting customer records from Credir_Card_Bank.xlsx into a Pandas DataFrame (df) to establish data readiness before performing statistical computations.
+-The pipeline begins by ingesting customer records from Credir_Card_Bank.xlsx into a Pandas DataFrame (df) to establish data readiness before performing statistical computations.
 
-Schema & Dtype Verification:
-
+-Schema & Dtype Verification:
 Checks structure using df.dtypes and df.columns to ensure numeric features (Annual_Income, Credit_Score, Credit_Limit, Savings_Balance, Investment_Value, EMI_Per_Month) are correctly registered as int64 or float64, and text fields (Occupation, Employment_Type, Residential_Status, KYC_Status) are parsed as object.
 
-Missing Value Quantification:
-
+-Missing Value Quantification:
 Executes df.isnull().sum() across all columns to evaluate missingness and prevent null values from skewing aggregations or correlation metrics.
 
-Deduplication Audit:
-
+-Deduplication Audit:
 Evaluates row-level uniqueness using df.duplicated().sum() to verify that individual customer profiles (Customer_ID) are not duplicated, preventing artificial inflation of sample sizes.
 
 ## Phase 2: Univariate Statistical Audit
 
-Once cleanliness is confirmed, the pipeline generates baseline parametric and non-parametric summary metrics to understand univariate distributions:
-
-Central Tendency Analysis:
-
+-Once cleanliness is confirmed, the pipeline generates baseline parametric and non-parametric summary metrics to understand univariate distributions:
+-Central Tendency Analysis:
 Computes parametric mean (df.mean(numeric_only=True)), non-parametric median (df.median(numeric_only=True)), and mode (df.mode().iloc[0]) across numerical features to evaluate central tendencies and identify distribution skewness (e.g., comparing mean vs. median for Annual_Income and Credit_Limit).
 
-Dispersion & Distribution Spread:
-
+-Dispersion & Distribution Spread:
 Calculates variance (df.var(numeric_only=True)) and standard deviation (df.std(numeric_only=True)).
 
-Generates five-number summaries via df.describe().T to inspect minimums, maximums, and interquartile ranges (25th, 50th, 75th percentiles) for liquid assets (Savings_Balance, Investment_Value) and debt parameters (EMI_Per_Month, Debt_To_Income_Ratio).
+-Generates five-number summaries via df.describe().T to inspect minimums, maximums, and interquartile ranges (25th, 50th, 75th percentiles) for liquid assets (Savings_Balance, Investment_Value) and debt parameters (EMI_Per_Month, Debt_To_Income_Ratio).
 
-Categorical Feature Profiling:
-
+-Categorical Feature Profiling:
 Executes df.describe(include=object).T to audit string variables, extracting unique category counts (unique), dominant modal categories (top), and category frequencies (freq).
 
 ## Phase 3: Feature Domain Engineering & Binning Logic
 
-To facilitate meaningful cohort analysis, raw continuous metrics are transformed into structured categorical tiers using Indian Rupee (₹) benchmarks:
-
+-To facilitate meaningful cohort analysis, raw continuous metrics are transformed into structured categorical tiers using Indian Rupee (₹) benchmarks:
 Income Tiering (Income_Group):
 
 Bins Annual_Income into 5 income brackets using the explicit function income_group:
 
-Low Income: < ₹3,00,000 (< ₹3 Lakhs)
-
-Lower Middle: ₹3,00,000 – ₹5,99,999 (₹3L – ₹6L)
-
-Middle Income: ₹6,00,000 – ₹9,99,999 (₹6L – ₹10L)
-
-Upper Middle: ₹10,00,000 – ₹14,99,999 (₹10L – ₹15L)
-
-High Income: ≥ ₹15,00,000 (≥ ₹15 Lakhs)
+## Low Income: < ₹3,00,000 (< ₹3 Lakhs)
+## Lower Middle: ₹3,00,000 – ₹5,99,999 (₹3L – ₹6L)
+## Middle Income: ₹6,00,000 – ₹9,99,999 (₹6L – ₹10L)
+## Upper Middle: ₹10,00,000 – ₹14,99,999 (₹10L – ₹15L)
+## High Income: ≥ ₹15,00,000 (≥ ₹15 Lakhs)
 
 Credit Score Tiering (Credit_Score_Category):
-
 Maps numerical credit scores (Credit_Score) into standard credit rating tiers via score_category:
 
-Excellent: ≥ 800
-
-Very Good: 750 – 799
-
-Good: 700 – 749
-
-Fair: 650 – 699
-
-Poor: 550 – 649
-
-Very Poor: < 550
+## Excellent: ≥ 800
+## Very Good: 750 – 799
+## Good: 700 – 749
+## Fair: 650 – 699
+## Poor: 550 – 649
+## Very Poor: < 550
 
 Demographic Cohort Generation (Age_Group):
-
 Categorizes customer age (Age) into life-stage brackets via age_group:
 
-18-24, 25-34, 35-44, 45-54, and 55+
+## 18-24, 25-34, 35-44, 45-54, and 55+
 
 ## Phase 4: Bivariate Analysis & Relationship Mining
 
 This phase explores multi-variable interactions to identify the primary drivers of credit line allocation and default risk:
 
-Pairwise Pearson Correlation Analysis:
+# Pairwise Pearson Correlation Analysis:
 
 Computes pairwise correlation coefficients using .corr() to measure line relationship strengths against Credit_Limit:
 
-Annual_Income vs. Credit_Limit
-
-Credit_Score vs. Credit_Limit
-
-Savings_Balance vs. Credit_Limit
-
-Investment_Value vs. Credit_Limit
-
-EMI_Per_Month vs. Credit_Limit
-
-Debt_To_Income_Ratio vs. Credit_Limit
-
-Credit_Utilization vs. Credit_Limit
-
-Years_With_Bank vs. Credit_Limit
+-Annual_Income vs. Credit_Limit
+-Credit_Score vs. Credit_Limit
+-Savings_Balance vs. Credit_Limit
+-Investment_Value vs. Credit_Limit
+-EMI_Per_Month vs. Credit_Limit
+-Debt_To_Income_Ratio vs. Credit_Limit
+-Credit_Utilization vs. Credit_Limit
+-Years_With_Bank vs. Credit_Limit
 
 Visualizes correlation matrices using Seaborn heatmaps (sb.heatmap(..., annot=True, cmap='coolwarm')).
 
-Demographic & Occupational Aggregations:
+-Demographic & Occupational Aggregations:
 
-Occupational Benchmarking: Groups records by Occupation to measure statistical summaries (count, mean, min, max) for Annual_Income, Credit_Score, Credit_Limit, Savings_Balance, Investment_Value, EMI_Per_Month, and Debt_To_Income_Ratio.
+-Occupational Benchmarking: Groups records by Occupation to measure statistical summaries (count, mean, min, max) for Annual_Income, Credit_Score, Credit_Limit, Savings_Balance, Investment_Value, EMI_Per_Month, and Debt_To_Income_Ratio.
 
-Demographic Cross-Tabulations: Computes mean financial metrics across Age_Group, Employment_Type, Residential_Status, and Gender.
+-Demographic Cross-Tabulations: Computes mean financial metrics across Age_Group, Employment_Type, Residential_Status, and Gender.
 
 Risk Behavior Evaluation:
-
 Evaluates interactions between credit scores, debt obligations, missed payments (Missed_Payments), and defaults (Number_of_Defaults) across binned credit tiers (Credit_Score_Category).
 
 ## Phase 5: Synthesis, Compliance, & Portfolio Insights
 
 The final phase isolates high-value customer segments, assesses compliance markers, and ranks overall underwriting drivers:
 
-High-Value Customer Isolation (nlargest):
+-High-Value Customer Isolation (nlargest):
 
 Filters top 10 accounts ranked by Credit_Limit (df.nlargest(10, "Credit_Limit")) and Savings_Balance (df.nlargest(10, "Savings_Balance")) to identify concentration risk among high-net-worth customers.
 
-High-Risk Portfolio Sorting:
+-High-Risk Portfolio Sorting:
 
 Filters vulnerable accounts and sorts them by default severity (df.sort_values(by=["Number_of_Defaults", "Missed_Payments"], ascending=False)) to cross-check debt ratios against default occurrences.
 
-Compliance & Verification Audits:
+-Compliance & Verification Audits:
 
 Evaluates mean Credit_Score and Credit_Limit across verification flags:
-
 PAN_Verified (Verified vs. Unverified)
-
 KYC_Status (Completed vs. Pending)
-
 Fraud_Flag (Flagged vs. Clean)
 
-Global Underwriting Driver Ranking:
+-Global Underwriting Driver Ranking:
 
 Generates a global correlation ranking using df.corr(numeric_only=True)["Credit_Limit"].sort_values(ascending=False) to establish the definitive order of features influencing bank credit allocation decisions.
 
