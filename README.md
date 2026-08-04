@@ -103,7 +103,7 @@ Maps numerical credit scores (Credit_Score) into standard credit rating tiers vi
 Demographic Cohort Generation (Age_Group):
 Categorizes customer age (Age) into life-stage brackets via age_group:
 
-# 18-24, 25-34, 35-44, 45-54, and 55+
+* **18-24, 25-34, 35-44, 45-54, and 55+**
 
 ## Phase 4: Bivariate Analysis & Relationship Mining
 
