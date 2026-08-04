@@ -7,7 +7,7 @@ A comprehensive Exploratory Data Analysis (EDA) of credit card bank customer dat
 2. [Dataset Structure](#-dataset-structure)
 3. [Key Features & Feature Engineering](#-key-features--feature-engineering)
 4. [Analysis Architecture](#-analysis-architecture)
-5. [Key Findings & Portfolio Insights](#-key-findings--portfolio-insights)
+5. [Key Findings & Observations](#-key-findings--Observations)
 6. [Requirements & Setup](#-requirements--setup)
 
 ## 📌 Project Overview
