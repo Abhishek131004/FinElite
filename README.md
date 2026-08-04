@@ -188,14 +188,60 @@ Generates a global correlation ranking using df.corr(numeric_only=True)["Credit_
 
 ## 💡 Key Findings & Observations
 
-## 1. Credit Limit Allocation DriversPrimary Underwriting DeterminantsAnnual Income as the Core Pillar: 
--The correlation between Annual_Income and Credit_Limit reveals that income tier is the strongest determinant for line assignment. 
+## 💳 Credit Limit Allocation Drivers & Underwriting Determinants
 
--Credit Score Tier Segmentation:Customers in Excellent (>= 800) and Very Good (750-799) tiers receive significantly higher average credit limits compared to Fair or Poor tiers.
+Retail bank underwriting models rely on a combination of financial capacity, historical credit behavior, and customer retention metrics to establish initial credit lines and credit limit enhancements. The EDA reveals three foundational pillars driving the bank's credit allocation algorithm:
 
--The aggregation matrix confirms that higher credit score bands show lower average Number_of_Defaults and Missed_Payments.
--Bank Relationship & Tenure: The correlation between Years_With_Bank and Credit_Limit alongside groupby("Years_With_Bank") demonstrates that bank loyalty and historical tenure yield gradual credit limit enhancements.
+---
 
+### 1. Income Segmentation vs. Credit Limit Baseline
+
+`Annual_Income` exhibits the strongest positive correlation with `Credit_Limit`, confirming that gross earning capacity serves as the primary ceiling for total credit exposure. 
+
+| Income Tier (`Income_Group`) | Annual Income Range (INR) | Mean Credit Limit | Underwriting Behavioral & Risk Insight |
+| :--- | :--- | :--- | :--- |
+| **Low Income** | `< ₹3,00,000` (< ₹3 Lakhs) | Entry-Level Baseline | Strict conservative caps to prevent early over-leveraging and debt overload. |
+| **Lower Middle** | `₹3,00,000 – ₹5,99,999` (₹3L – ₹6L) | Moderate Allocation | Scaled credit lines matching regular monthly household expenditures. |
+| **Middle Income** | `₹6,00,000 – ₹9,99,999` (₹6L – ₹10L) | Above-Average Allocation | Substantial credit buffer allowed for consumer lifestyle and travel spending. |
+| **Upper Middle** | `₹10,00,000 – ₹14,99,999` (₹10L – ₹15L) | High Exposure | Expanded limits tailored for multi-card users and major EMI conversions. |
+| **High Income** | `≥ ₹15,00,000` (≥ ₹15 Lakhs) | Peak Exposure | Premium line assignments designed for high-net-worth liquidity needs. |
+
+---
+
+### 2. Credit Score Tier Risk Stratification
+
+While income determines the upper boundary of credit capacity, `Credit_Score` acts as the *risk multiplier* that determines where within that boundary a customer's limit actually sits.
+
+| Credit Score Tier (`Credit_Score_Category`) | Score Range | Relative Limit Allocation | Default & Risk Profile (`Number_of_Defaults` & `Missed_Payments`) |
+| :--- | :--- | :--- | :--- |
+| **Excellent** | `≥ 800` | Maximum Tier Limit | Near-zero default instances; prime low-risk accounts. |
+| **Very Good** | `750 – 799` | Premium Line Assignment | Extremely low missed payment rates; highly reliable. |
+| **Good** | `700 – 749` | Standard Baseline Limit | Moderate risk profile; standard monitoring applied. |
+| **Fair** | `650 – 699` | Restricted Baseline Limit | Elevated monitoring; lower limit approval ratios. |
+| **Poor** | `550 – 649` | Risk-Mitigated Caps | Concentrated default instances; high debt-to-income ratios. |
+| **Very Poor** | `< 550` | Minimum / Flagged Caps | Highest default concentration and frequent missed payments. |
+
+---
+
+### 3. Bank Relationship & Tenure (`Years_With_Bank`)
+
+Long-term customer tenure acts as an internal credit seasoning mechanism, justifying automatic credit line enhancements over time.
+
+| Relationship Stage | Tenure (`Years_With_Bank`) | Underwriting Impact | Primary Drivers |
+| :--- | :--- | :--- | :--- |
+| **New Onboarding** | `< 2 Years` | Conservative Baseline | Limited internal transaction history; relies strictly on CIBIL/FICO scores. |
+| **Established Account** | `2 – 5 Years` | Gradual Line Expansion | Account activity seasoned; regular salary credits and timely EMI performance proven. |
+| **Mature / Loyal** | `5+ Years` | Preferred Credit Line | Long internal transactional record reduces operational uncertainty, unlocking automatic CLI. |
+
+---
+
+### 📊 Summary Matrix: Primary Underwriting Determinants
+
+| Feature Parameter | Correlation Strength | Primary Underwriting Role | Impact on Credit Allocation (₹) |
+| :--- | :--- | :--- | :--- |
+| **`Annual_Income`** | Strongest Positive | **Capacity Pillar** | Establishes core baseline credit ceiling across income brackets (< ₹3L to ≥ ₹15L). |
+| **`Credit_Score`** | Strong Positive | **Risk Modifier** | High scores (≥ 750) unlock top tier limits; low scores (< 650) trigger risk caps. |
+| **`Years_With_Bank`** | Moderate Positive | **Retention & Seasoning** | Long tenure yields automatic limit enhancements due to proven transactional reliability. |
 
 ## 2. Customer Liquidity & Asset ExposureSavings & Investment Correlation: 
 -Evaluating correlation metrics for Savings_Balance and Investment_Value against Credit_Limit shows that customers with larger liquid safety nets represent lower credit risk, justifying higher line assignments.
@@ -212,7 +258,7 @@ Generates a global correlation ranking using df.corr(numeric_only=True)["Credit_
 -Default & Missed Payment Sorting: Sorting records by Number_of_Defaults and Missed_Payments isolates the highest-risk portfolio segment. These accounts show low credit scores combined with elevated debt ratios
 
 ## 4. Demographic & Occupational Profiling:
-## 1. Occupational Profiling (Occupation)
+## i. Occupational Profiling (Occupation)
 Occupational grouping serves as a primary proxy for income stability, earning capacity, and cash-flow regularity.
 
 Key Aggregations Analyzed: count, mean, min, max across Annual_Income, Credit_Score, Credit_Limit, Savings_Balance, Investment_Value, EMI_Per_Month, and Debt_To_Income_Ratio.
@@ -229,7 +275,7 @@ Spread & Volatility: Show significantly wider min-max variances in Annual_Income
 
 Risk Cushioning: Higher volatility in monthly income leads banks to maintain more conservative average Credit_Limit caps relative to their peak income to mitigate sudden cash-flow shocks.
 
-## 2. Life-Stage & Age Cohort Profiling (Age_Group)
+## ii. Life-Stage & Age Cohort Profiling (Age_Group)
 Categorizing customers into life-stage brackets (18–24, 25–34, 35–44, 45–54, 55+) highlights clear financial lifecycle trends:
 
 18–24 Cohort (Early Career / Entry Level):
@@ -254,7 +300,7 @@ Risk Outlook: Highest average Credit_Score bands, driven by extended banking ten
 
 Metrics: High savings-to-spending ratios, moderate Avg_Monthly_Spending, and lower overall borrowing/debt obligations (EMI_Per_Month).
 
-## 3. Employment Type Profiling (Employment_Type)
+## iii. Employment Type Profiling (Employment_Type)
 Evaluating customer records across Salaried vs. Self-Employed / Contractual profiles reveals distinct risk-reward trade-offs:
 
 Salaried Individuals:
@@ -271,7 +317,7 @@ Show higher average asset generation potential (Investment_Value), but face stri
 
 Banks adjust leverage boundaries (Credit_Limit) based on higher required liquid cushions (Savings_Balance).
 
-## 4. Residential Status (Residential_Status)
+## iv. Residential Status (Residential_Status)
 Housing status provides strong context regarding fixed overhead costs, asset backing, and long-term residency stability:
 
 Owns / Mortgage Holders:
@@ -286,7 +332,7 @@ Display higher sensitivity to rising monthly fixed obligations (EMI_Per_Month to
 
 Require tighter monitoring of Credit_Utilization to prevent over-leveraging.
 
-## 5. Gender-Based Financial Benchmarking (Gender)
+## v. Gender-Based Financial Benchmarking (Gender)
 Comparing Annual_Income, Credit_Score, and Credit_Limit across gender breakdowns provides an objective baseline audit:
 
 Credit Score Parity: Credit_Score distribution remains uniform across genders, confirming that credit rating models are driven strictly by financial performance and repayment history.
