@@ -448,25 +448,32 @@ with r2_col1:
 
 with r2_col2:
     st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-    st.subheader("5. Risk Exposure: Credit Utilization vs. Credit Score")
+    st.subheader("5. Credit Utilization Distribution by Default Status")
+    
     if not filtered_df.empty:
-        fig_bubble = px.scatter(
+        filtered_df["Status_Label"] = filtered_df["default_payment_next_month"].map(
+            {0: "Non-Defaulters (0)", 1: "Defaulters (1)"}
+        )
+        fig_box = px.box(
             filtered_df,
-            x="Credit_Score",
+            x="Status_Label",
             y="Credit_Utilization",
-            size="Missed_Payments",
-            color="High_Risk_Flag",
-            color_discrete_map={"High Risk": "#f87171", "Standard": "#38bdf8"},
-            hover_data=["Age", "Late_Payment_Count"],
+            color="Status_Label",
+            points="outliers",
+            color_discrete_map={
+                "Non-Defaulters (0)": "#38bdf8",
+                "Defaulters (1)": "#f87171",
+            },
             template=PLOTLY_THEME,
         )
-        fig_bubble.update_layout(
+        fig_box.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
             margin=dict(l=10, r=10, t=30, b=10),
             height=360,
-            xaxis_title="Credit Score",
+            showlegend=False,
+            xaxis_title="Default Status",
             yaxis_title="Credit Utilization (%)",
         )
-        st.plotly_chart(fig_bubble, use_container_width=True)
+        st.plotly_chart(fig_box, use_container_width=True)
     st.markdown("</div>", unsafe_allow_html=True)
