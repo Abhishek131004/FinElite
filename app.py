@@ -1,375 +1,248 @@
-import os
-import matplotlib.pyplot as plt
-import numpy as np
+import streamlit as st
 import pandas as pd
+import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-import streamlit as st
 
-# =============================================================================
-# 1. PAGE CONFIGURATION & STYLING
-# =============================================================================
+# ---------------------------------------------------------
+# 1. PAGE CONFIGURATION
+# ---------------------------------------------------------
 st.set_page_config(
-    page_title="Risk Analytics Dashboard",
-    page_icon="💳",
+    page_title="Analytics Dashboard",
+    page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="expanded"
 )
 
-# Custom CSS for polished styling
-st.markdown(
-    """
-    <style>
-    .metric-card {
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        padding: 15px;
-        border-left: 5px solid #2b5c8f;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+# ---------------------------------------------------------
+# 2. CUSTOM GLASSMORPHISM & GRADIENT STYLING (CSS)
+# ---------------------------------------------------------
+st.markdown("""
+<style>
+    /* Main Background Gradient */
+    .stApp {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+        color: #f8fafc;
+        font-family: 'Inter', sans-serif;
     }
-    .stPlotlyChart {
-        background-color: #ffffff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+
+    /* Glassmorphism Containers */
+    div[data-testid="stMetricValue"], 
+    div[data-testid="stMetric"] {
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 18px 22px;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        transition: transform 0.2s ease, border-color 0.2s ease;
     }
-    </style>
-""",
-    unsafe_allow_html=True,
-)
+
+    div[data-testid="stMetric"]:hover {
+        transform: translateY(-3px);
+        border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    /* Sidebar Styling */
+    section[data-testid="stSidebar"] {
+        background-color: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(16px);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* Custom Headers */
+    .dashboard-header {
+        font-size: 2.25rem;
+        font-weight: 700;
+        background: linear-gradient(90deg, #818cf8 0%, #c084fc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.25rem;
+    }
+    
+    .dashboard-subtle {
+        color: #94a3b8;
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Styled Tabs */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        color: #94a3b8;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 8px 16px;
+    }
+
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%) !important;
+        color: #ffffff !important;
+        border: none !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 
-# =============================================================================
-# 2. DATA LOADING & CACHING
-# =============================================================================
+# ---------------------------------------------------------
+# 3. MOCK DATA GENERATION (Replace with your actual dataset)
+# ---------------------------------------------------------
 @st.cache_data
 def load_data():
-    file_path = "../DataSets/Credir_Card_Bank.xlsx"
-
-    # Fallback to local directory if relative path fails
-    if not os.path.exists(file_path) and os.path.exists("Credir_Card_Bank.xlsx"):
-        file_path = "Credir_Card_Bank.xlsx"
-
-    df = pd.read_excel(file_path)
-
-    # Core transformations from initial script
-    df["default_payment_next_month"] = (df["Number_of_Defaults"] > 0).astype(
-        int
-    )
-    df["Age_Group"] = pd.cut(
-        df["Age"],
-        bins=[18, 25, 35, 50, 65, 100],
-        labels=["18-25", "26-35", "36-50", "51-65", "65+"],
-    )
-
-    high_risk_condition = (
-        (df["Credit_Score"] < 600)
-        | (df["Credit_Utilization"] > 75)
-        | (df["Missed_Payments"] >= 3)
-    )
-    df["High_Risk_Flag"] = np.where(
-        high_risk_condition, "High Risk", "Standard"
-    )
-
+    dates = pd.date_range(start="2026-01-01", periods=180, freq="D")
+    categories = ["Tech", "Apparel", "Services", "Logistics"]
+    data = []
+    
+    for date in dates:
+        for cat in categories:
+            revenue = np.random.randint(1000, 5000)
+            conversion = round(np.random.uniform(1.5, 5.0), 2)
+            users = np.random.randint(100, 1000)
+            data.append([date, cat, revenue, conversion, users])
+            
+    df = pd.DataFrame(data, columns=["Date", "Category", "Revenue", "ConversionRate", "Users"])
     return df
 
-
-try:
-    df = load_data()
-except Exception as e:
-    st.error(
-        f"Unable to load dataset. Please ensure `Credir_Card_Bank.xlsx` exists in `../DataSets/` or the app root folder. Error details: {e}"
-    )
-    st.stop()
+df = load_data()
 
 
-# =============================================================================
-# 3. INTERACTIVE SIDEBAR FILTERS
-# =============================================================================
-st.sidebar.header("🔍 Global Dashboard Filters")
+# ---------------------------------------------------------
+# 4. SIDEBAR - INTERACTIVE FILTERS
+# ---------------------------------------------------------
+st.sidebar.markdown("### 🎛️ Control Panel")
 
-# Filter 1: Risk Category
-selected_risk = st.sidebar.multiselect(
-    "Risk Segment Status",
-    options=df["High_Risk_Flag"].unique(),
-    default=df["High_Risk_Flag"].unique(),
+# Date Filter
+min_date, max_date = df["Date"].min().date(), df["Date"].max().date()
+date_range = st.sidebar.date_input(
+    "Select Date Range",
+    value=(min_date, max_date),
+    min_value=min_date,
+    max_value=max_date
 )
 
-# Filter 2: Age Group
-selected_age_groups = st.sidebar.multiselect(
-    "Age Groups",
-    options=df["Age_Group"].cat.categories.tolist(),
-    default=df["Age_Group"].cat.categories.tolist(),
+# Multi-select Category Filter
+all_categories = df["Category"].unique().tolist()
+selected_categories = st.sidebar.multiselect(
+    "Filter Categories",
+    options=all_categories,
+    default=all_categories
 )
-
-# Filter 3: Occupation (if available)
-if "Occupation" in df.columns:
-    occupations = df["Occupation"].dropna().unique().tolist()
-    selected_occ = st.sidebar.multiselect(
-        "Occupation", options=occupations, default=occupations
-    )
-else:
-    selected_occ = None
 
 # Apply Filters
-filtered_df = df[
-    (df["High_Risk_Flag"].isin(selected_risk))
-    & (df["Age_Group"].isin(selected_age_groups))
-]
-
-if selected_occ and "Occupation" in filtered_df.columns:
-    filtered_df = filtered_df[filtered_df["Occupation"].isin(selected_occ)]
-
-
-# =============================================================================
-# 4. DASHBOARD HEADER & KPI CARDS
-# =============================================================================
-st.title("💳 Credit Risk & Default Profiling Analytics")
-st.markdown(
-    "An interactive dashboard analyzing portfolio default risk, age distribution, missed payments, and driver correlation."
-)
-st.divider()
-
-# Executive Summary Metric Row
-col1, col2, col3, col4, col5 = st.columns(5)
-
-total_cust = len(filtered_df)
-total_defaults = filtered_df["default_payment_next_month"].sum()
-overall_default_rate = (
-    (total_defaults / total_cust * 100) if total_cust > 0 else 0
-)
-avg_late = (
-    filtered_df["Late_Payment_Count"].mean()
-    if "Late_Payment_Count" in filtered_df.columns
-    else 0
-)
-high_risk_count = (filtered_df["High_Risk_Flag"] == "High Risk").sum()
-
-col1.metric("Total Customers", f"{total_cust:,}")
-col2.metric("Defaulted Customers", f"{total_defaults:,}")
-col3.metric("Default Rate", f"{overall_default_rate:.2f}%")
-col4.metric("Avg Late Payments", f"{avg_late:.2f}")
-col5.metric(
-    "High Risk Flagged",
-    f"{high_risk_count:,}",
-    delta=f"{(high_risk_count/total_cust*100):.1f}%" if total_cust > 0 else "0%",
-    delta_color="inverse",
-)
-
-st.divider()
+if len(date_range) == 2:
+    start_d, end_d = date_range
+    filtered_df = df[(df["Date"].dt.date >= start_d) & 
+                     (df["Date"].dt.date <= end_d) & 
+                     (df["Category"].isin(selected_categories))]
+else:
+    filtered_df = df[df["Category"].isin(selected_categories)]
 
 
-# =============================================================================
-# 5. DASHBOARD CHARTS (2x3 GRID)
-# =============================================================================
+# ---------------------------------------------------------
+# 5. MAIN HEADER SECTION
+# ---------------------------------------------------------
+st.markdown('<div class="dashboard-header">Executive Performance Dashboard</div>', unsafe_allow_html=True)
+st.markdown('<div class="dashboard-subtle">Real-time metrics, interactive filtering, and exploratory analytics</div>', unsafe_allow_html=True)
 
-row1_col1, row1_col2, row1_col3 = st.columns(3)
 
-# -----------------------------------------------------------------------------
-# Chart 1: Default Distribution
-# -----------------------------------------------------------------------------
-with row1_col1:
-    st.subheader("1. Default Distribution (%)")
-    default_dist = (
-        filtered_df["default_payment_next_month"]
-        .value_counts(normalize=True)
-        .reset_index()
+# ---------------------------------------------------------
+# 6. KPI METRICS CARDS
+# ---------------------------------------------------------
+col1, col2, col3, col4 = st.columns(4)
+
+total_revenue = filtered_df["Revenue"].sum()
+total_users = filtered_df["Users"].sum()
+avg_conversion = filtered_df["ConversionRate"].mean() if not filtered_df.empty else 0.0
+avg_ticket = (total_revenue / total_users) if total_users > 0 else 0.0
+
+col1.metric("Total Revenue", f"${total_revenue:,.0f}", delta="8.4%")
+col2.metric("Active Users", f"{total_users:,.0f}", delta="12.1%")
+col3.metric("Avg. Conversion", f"{avg_conversion:.2f}%", delta="-0.3%")
+col4.metric("Avg. Ticket Size", f"${avg_ticket:.2f}", delta="4.2%")
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+
+# ---------------------------------------------------------
+# 7. INTERACTIVE VISUALIZATIONS (TABS)
+# ---------------------------------------------------------
+tab1, tab2 = st.tabs(["📈 Market Trends", "🔍 Data Explorer"])
+
+with tab1:
+    chart_col1, chart_col2 = st.columns([2, 1])
+
+    with chart_col1:
+        st.markdown("##### Revenue Performance Over Time")
+        
+        # Interactive Plotly Line Chart
+        trend_data = filtered_df.groupby(["Date", "Category"])["Revenue"].sum().reset_index()
+        fig_line = px.line(
+            trend_data,
+            x="Date",
+            y="Revenue",
+            color="Category",
+            color_discrete_sequence=["#818cf8", "#c084fc", "#38bdf8", "#f43f5e"]
+        )
+        
+        fig_line.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#94a3b8"),
+            xaxis=dict(showgrid=False),
+            yaxis=dict(gridcolor="rgba(255,255,255,0.05)"),
+            hovermode="x unified",
+            margin=dict(l=20, r=20, t=30, b=20),
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        )
+        st.plotly_chart(fig_line, use_container_width=True)
+
+    with chart_col2:
+        st.markdown("##### Category Revenue Share")
+        
+        # Interactive Plotly Donut Chart
+        share_data = filtered_df.groupby("Category")["Revenue"].sum().reset_index()
+        fig_donut = px.pie(
+            share_data,
+            values="Revenue",
+            names="Category",
+            hole=0.6,
+            color_discrete_sequence=["#818cf8", "#c084fc", "#38bdf8", "#f43f5e"]
+        )
+        
+        fig_donut.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#94a3b8"),
+            margin=dict(l=20, r=20, t=30, b=20),
+            showlegend=False
+        )
+        fig_donut.update_traces(textposition='inside', textinfo='percent+label')
+        st.plotly_chart(fig_donut, use_container_width=True)
+
+with tab2:
+    st.markdown("##### Detailed Dataset Inspection")
+    
+    # Dynamic Dataframe Display with Download Action
+    st.dataframe(
+        filtered_df,
+        use_container_width=True,
+        column_config={
+            "Revenue": st.column_config.NumberColumn(format="$%d"),
+            "ConversionRate": st.column_config.NumberColumn(format="%.2f%%"),
+            "Date": st.column_config.DateColumn(format="YYYY-MM-DD")
+        }
     )
-    default_dist.columns = ["Status", "Percentage"]
-    default_dist["Percentage"] *= 100
-    default_dist["Status_Label"] = default_dist["Status"].map(
-        {0: "Non-Defaulters (0)", 1: "Defaulters (1)"}
+    
+    # Download Button
+    csv = filtered_df.to_csv(index=False).encode('utf-8')
+    st.download_button(
+        label="📥 Export Filtered Data as CSV",
+        data=csv,
+        file_name="filtered_analytics_data.csv",
+        mime="text/csv",
     )
-
-    fig1 = px.bar(
-        default_dist,
-        x="Status_Label",
-        y="Percentage",
-        text=default_dist["Percentage"].apply(lambda x: f"{x:.2f}%"),
-        color="Status_Label",
-        color_discrete_map={
-            "Non-Defaulters (0)": "#2b5c8f",
-            "Defaulters (1)": "#d95f02",
-        },
-    )
-    fig1.update_traces(
-        textposition="outside", hovertemplate="%{x}: %{y:.2f}%"
-    )
-    fig1.update_layout(
-        xaxis_title="",
-        yaxis_title="Percentage (%)",
-        showlegend=False,
-        height=380,
-    )
-    st.plotly_chart(fig1, use_container_width=True)
-
-# -----------------------------------------------------------------------------
-# Chart 2: Default Rate by Age Group
-# -----------------------------------------------------------------------------
-with row1_col2:
-    st.subheader("2. Default Rate by Age Group")
-    risk_age = (
-        filtered_df.groupby("Age_Group", observed=False)[
-            "default_payment_next_month"
-        ]
-        .mean()
-        .reset_index()
-    )
-    risk_age["Default Rate (%)"] = risk_age["default_payment_next_month"] * 100
-
-    fig2 = px.bar(
-        risk_age,
-        x="Age_Group",
-        y="Default Rate (%)",
-        text=risk_age["Default Rate (%)"].apply(lambda x: f"{x:.2f}%"),
-        color_discrete_sequence=["teal"],
-    )
-    fig2.update_traces(
-        textposition="outside", hovertemplate="Age %{x}: %{y:.2f}%"
-    )
-    fig2.update_layout(
-        xaxis_title="Age Group",
-        yaxis_title="Default Rate (%)",
-        height=380,
-    )
-    st.plotly_chart(fig2, use_container_width=True)
-
-# -----------------------------------------------------------------------------
-# Chart 3: Default Rate by Occupation
-# -----------------------------------------------------------------------------
-with row1_col3:
-    st.subheader("3. Default Rate by Occupation")
-    if "Occupation" in filtered_df.columns:
-        occ_risk = (
-            filtered_df.groupby("Occupation")["default_payment_next_month"]
-            .mean()
-            .reset_index()
-        )
-        occ_risk["Default Rate (%)"] = (
-            occ_risk["default_payment_next_month"] * 100
-        )
-        occ_risk = occ_risk.sort_values(by="Default Rate (%)", ascending=True)
-
-        fig3 = px.bar(
-            occ_risk,
-            y="Occupation",
-            x="Default Rate (%)",
-            orientation="h",
-            color_discrete_sequence=["teal"],
-        )
-        fig3.update_traces(hovertemplate="%{y}: %{x:.2f}%")
-        fig3.update_layout(
-            yaxis_title="Occupation",
-            xaxis_title="Default Rate (%)",
-            height=380,
-        )
-        st.plotly_chart(fig3, use_container_width=True)
-    else:
-        st.info("Occupation feature is not present in dataset.")
-
-row2_col1, row2_col2, row2_col3 = st.columns(3)
-
-# -----------------------------------------------------------------------------
-# Chart 4: Distribution of Missed Payments
-# -----------------------------------------------------------------------------
-with row2_col1:
-    st.subheader("4. Missed Payments Count")
-    if "Missed_Payments" in filtered_df.columns:
-        missed_counts = (
-            filtered_df["Missed_Payments"].value_counts().reset_index()
-        )
-        missed_counts.columns = ["Missed Payments", "Customer Count"]
-        missed_counts = missed_counts.sort_values(by="Missed Payments")
-
-        fig4 = px.bar(
-            missed_counts,
-            x="Missed Payments",
-            y="Customer Count",
-            color_discrete_sequence=["#87ceeb"],
-        )
-        fig4.update_traces(
-            marker_line_color="black",
-            marker_line_width=1,
-            hovertemplate="Missed %{x} Payments: %{y:,} Customers",
-        )
-        fig4.update_layout(
-            xaxis_title="Number of Missed Payments",
-            yaxis_title="Customer Count",
-            height=380,
-        )
-        st.plotly_chart(fig4, use_container_width=True)
-    else:
-        st.info("Missed_Payments column not found.")
-
-# -----------------------------------------------------------------------------
-# Chart 5: Feature Correlations
-# -----------------------------------------------------------------------------
-with row2_col2:
-    st.subheader("5. Feature Correlations")
-    numeric_df = filtered_df.select_dtypes(include=[np.number])
-    if "default_payment_next_month" in numeric_df.columns:
-        corr_with_target = numeric_df.corr()["default_payment_next_month"]
-        corr_ranked = (
-            corr_with_target.drop(
-                ["default_payment_next_month", "Number_of_Defaults"],
-                errors="ignore",
-            )
-            .sort_values(ascending=True)
-            .reset_index()
-        )
-        corr_ranked.columns = ["Feature", "Correlation"]
-
-        fig5 = px.bar(
-            corr_ranked,
-            y="Feature",
-            x="Correlation",
-            orientation="h",
-            color_discrete_sequence=["teal"],
-        )
-        fig5.add_vline(x=0, line_dash="dash", line_color="grey")
-        fig5.update_traces(hovertemplate="%{y}: %{x:.4f}")
-        fig5.update_layout(
-            xaxis_title="Correlation Coefficient",
-            yaxis_title="Feature",
-            height=380,
-        )
-        st.plotly_chart(fig5, use_container_width=True)
-
-# -----------------------------------------------------------------------------
-# Chart 6: Late Payment Distribution Trend
-# -----------------------------------------------------------------------------
-with row2_col3:
-    st.subheader("6. Late Payment Count Trend")
-    if "Late_Payment_Count" in filtered_df.columns:
-        late_dist = (
-            filtered_df["Late_Payment_Count"].value_counts().reset_index()
-        )
-        late_dist.columns = ["Late Payment Count", "Customer Count"]
-        late_dist = late_dist.sort_values(by="Late Payment Count")
-
-        fig6 = px.line(
-            late_dist,
-            x="Late Payment Count",
-            y="Customer Count",
-            markers=True,
-            color_discrete_sequence=["coral"],
-        )
-        fig6.update_traces(
-            line=dict(width=3),
-            marker=dict(size=8),
-            hovertemplate="%{x} Late Payments: %{y:,} Customers",
-        )
-        fig6.update_layout(
-            xaxis_title="Late Payment Count",
-            yaxis_title="Number of Customers",
-            height=380,
-        )
-        st.plotly_chart(fig6, use_container_width=True)
-    else:
-        st.info("Late_Payment_Count column not found.")
-
-
-# =============================================================================
-# 6. RAW DATA & EXPLORATION TABLE
-# =============================================================================
-with st.expander("📄 View Filtered Portfolio Data Table"):
-    st.dataframe(filtered_df, use_container_width=True)
