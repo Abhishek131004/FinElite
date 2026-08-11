@@ -6,120 +6,98 @@ import plotly.graph_objects as go
 import streamlit as st
 
 # =============================================================================
-# 1. PAGE CONFIGURATION & CUSTOM CLASSY UI
+# 1. PAGE CONFIG & HIGH-CONTRAST VISIBILITY CSS
 # =============================================================================
 st.set_page_config(
-    page_title="Risk Analytics & Simulation Dashboard",
+    page_title="Risk Analytics Dashboard",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# Custom Styling: Animated Modern Gradient Background, Glassmorphism, and Cards
+# Custom CSS fixing text contrast for Sidebar, Labels, and Headers
 st.markdown(
     """
     <style>
-    /* Animated Gradient Background */
+    /* Dark Background */
     .stApp {
-        background: linear-gradient(-45deg, #0f172a, #1e1b4b, #111827, #0f172a);
-        background-size: 400% 400%;
-        animation: gradientBG 15s ease infinite;
-        color: #f3f4f6;
+        background-color: #0d1117;
+        color: #f0f6fc;
     }
 
-    @keyframes gradientBG {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-
-    /* Sidebar Customization */
+    /* Sidebar Background & Explicit White Text Fix */
     section[data-testid="stSidebar"] {
-        background: rgba(15, 23, 42, 0.85) !important;
-        backdrop-filter: blur(12px);
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    /* Glassmorphism KPI Container */
-    .kpi-card {
-        background: rgba(30, 41, 59, 0.65);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
-        padding: 20px;
-        text-align: center;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background-color: #161b22 !important;
+        border-right: 1px solid #30363d;
     }
     
-    .kpi-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
-        border: 1px solid rgba(99, 102, 241, 0.4);
+    /* Force all Sidebar text, labels, headers, and markdown to be crisp white/light grey */
+    section[data-testid="stSidebar"] * {
+        color: #e6edf3 !important;
+    }
+
+    /* Fix Slider Text Labels specifically */
+    div[data-baseweb="slider"] * {
+        color: #f0f6fc !important;
+    }
+
+    /* KPI Cards */
+    .kpi-card {
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        border-radius: 12px;
+        padding: 18px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
 
     .kpi-title {
         font-size: 0.85rem;
-        font-weight: 500;
-        color: #9ca3af;
+        font-weight: 600;
+        color: #8b949e !important;
         text-transform: uppercase;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
     }
 
     .kpi-value {
-        font-size: 2rem;
+        font-size: 2.2rem;
         font-weight: 700;
-        margin-top: 8px;
-        background: linear-gradient(135deg, #60a5fa, #a78bfa);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        margin-top: 6px;
+        color: #58a6ff !important;
     }
 
     .kpi-badge {
-        font-size: 0.8rem;
-        padding: 4px 8px;
-        border-radius: 12px;
-        margin-top: 8px;
+        font-size: 0.75rem;
+        padding: 3px 8px;
+        border-radius: 10px;
+        margin-top: 6px;
         display: inline-block;
     }
 
-    .badge-danger { background-color: rgba(239, 68, 68, 0.2); color: #f87171; }
-    .badge-info { background-color: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-    .badge-warning { background-color: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .badge-danger { background-color: rgba(248, 81, 73, 0.2); color: #ff7b72 !important; }
+    .badge-info { background-color: rgba(56, 139, 253, 0.2); color: #58a6ff !important; }
 
     /* Chart Container Cards */
     .chart-container {
-        background: rgba(30, 41, 59, 0.5);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        border-radius: 12px;
         padding: 16px;
         margin-bottom: 20px;
     }
 
-    /* Custom Header Styling */
+    /* Headers */
     .header-title {
-        font-size: 2.5rem;
+        font-size: 2.4rem;
         font-weight: 800;
-        background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: #58a6ff;
         margin-bottom: 0px;
     }
 
     .header-subtitle {
         font-size: 1rem;
-        color: #94a3b8;
-        margin-bottom: 25px;
-    }
-
-    /* Alert Banner Style */
-    .alert-box {
-        background: rgba(239, 68, 68, 0.15);
-        border: 1px solid rgba(239, 68, 68, 0.4);
-        border-radius: 12px;
-        padding: 15px;
+        color: #8b949e;
         margin-bottom: 20px;
-        color: #fca5a5;
     }
 
     #MainMenu {visibility: hidden;}
@@ -171,70 +149,62 @@ except Exception as e:
 
 
 # =============================================================================
-# 3. SIDEBAR FILTERS & INTERACTIVE SIMULATOR
+# 3. SIDEBAR FILTERS WITH CORRECT DEFAULTS
 # =============================================================================
-st.sidebar.markdown("### 🎛️ Dashboard Controls")
+st.sidebar.markdown("## 🎛️ Dashboard Controls")
 st.sidebar.markdown("---")
 
 # Filter 1: Risk Category
 risk_options = df["High_Risk_Flag"].unique().tolist()
 selected_risk = st.sidebar.multiselect(
-    "Risk Profile", options=risk_options, default=risk_options
+    "Risk Profile Filter", options=risk_options, default=risk_options
 )
 
 # Filter 2: Age Group
 age_options = [str(x) for x in df["Age_Group"].cat.categories.tolist()]
 selected_age_groups = st.sidebar.multiselect(
-    "Age Groups", options=age_options, default=age_options
+    "Age Group Bins", options=age_options, default=age_options
 )
 
-# Filter 3: Threshold Sliders
+# Filter 3: Sliders defaulted to FULL RANGE so data isn't hidden by default
 st.sidebar.markdown("---")
-st.sidebar.markdown("### ⚙️ Threshold Controls")
+st.sidebar.markdown("### ⚙️ Threshold Overrides")
 credit_score_min = st.sidebar.slider(
-    "Min Credit Score",
+    "Min Credit Score Cutoff",
     min_value=int(df["Credit_Score"].min()),
     max_value=int(df["Credit_Score"].max()),
-    value=int(df["Credit_Score"].min()),
+    value=int(df["Credit_Score"].min()),  # Start at minimum to show ALL data
 )
 
 utilization_max = st.sidebar.slider(
-    "Max Credit Utilization (%)",
+    "Max Credit Utilization Cutoff (%)",
     min_value=0,
     max_value=100,
-    value=100,
+    value=100,  # Start at 100% to show ALL data
 )
 
-# Filter Application
+# Apply Filters
 filtered_df = df[
     (df["High_Risk_Flag"].isin(selected_risk))
     & (df["Age_Group"].astype(str).isin(selected_age_groups))
-    & (filtered_df_score := df["Credit_Score"] >= credit_score_min)
+    & (df["Credit_Score"] >= credit_score_min)
     & (df["Credit_Utilization"] <= utilization_max)
 ]
 
-# -----------------------------------------------------------------------------
-# SIDEBAR: WHAT-IF RISK CALCULATOR (COOL ADDITION #1)
-# -----------------------------------------------------------------------------
+# Real-time Risk Simulator
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🔮 Real-Time Risk Simulator")
-st.sidebar.caption("Input applicant parameters to assess risk:")
-
-sim_score = st.sidebar.slider("Credit Score", 300, 850, 580)
+sim_score = st.sidebar.slider("Applicant Credit Score", 300, 850, 580)
 sim_util = st.sidebar.slider("Credit Utilization (%)", 0, 100, 80)
 sim_missed = st.sidebar.slider("Missed Payments Count", 0, 10, 3)
 
-# Calculate simulated risk
 is_sim_high_risk = (sim_score < 600) or (sim_util > 75) or (sim_missed >= 3)
-sim_score_val = (
-    (850 - sim_score) * 0.4 + (sim_util * 0.4) + (sim_missed * 10)
-)
-sim_score_val = min(100, max(0, sim_score_val))
+sim_score_val = min(100, max(0, (850 - sim_score) * 0.4 + (sim_util * 0.4) + (sim_missed * 10)))
 
 if is_sim_high_risk:
-    st.sidebar.error(f"⚠️ **HIGH RISK APPLICANT**\n\nRisk Score: {sim_score_val:.1f}/100")
+    st.sidebar.error(f"⚠️ **HIGH RISK APPLICANT**\n\nCalculated Risk: {sim_score_val:.1f}/100")
 else:
-    st.sidebar.success(f"✅ **LOW/STANDARD RISK**\n\nRisk Score: {sim_score_val:.1f}/100")
+    st.sidebar.success(f"✅ **STANDARD RISK APPLICANT**\n\nCalculated Risk: {sim_score_val:.1f}/100")
 
 
 # =============================================================================
@@ -246,33 +216,18 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Anomaly Alert Box (COOL ADDITION #2)
-extreme_outliers = filtered_df[
-    (filtered_df["Credit_Score"] < 580) & (filtered_df["Credit_Utilization"] > 80)
-]
-if not extreme_outliers.empty:
-    st.markdown(
-        f"""
-        <div class="alert-box">
-            🚨 <b>CRITICAL RISK ALERT:</b> Found <b>{len(extreme_outliers)} customers</b> with extreme risk signals 
-            (Credit Score < 580 and Utilization > 80%). Immediate audit recommended!
-        </div>
-    """,
-        unsafe_allow_html=True,
-    )
-
-# Executive KPI Cards Row
+# Executive KPI Row
 kpi1, kpi2, kpi3, kpi4, kpi5 = st.columns(5)
 
 total_cust = len(filtered_df)
 total_defaults = filtered_df["default_payment_next_month"].sum()
 overall_default_rate = (total_defaults / total_cust * 100) if total_cust > 0 else 0
-avg_late = filtered_df["Late_Payment_Count"].mean() if "Late_Payment_Count" in filtered_df.columns else 0
+avg_late = filtered_df["Late_Payment_Count"].mean() if "Late_Payment_Count" in filtered_df.columns and total_cust > 0 else 0
 high_risk_count = (filtered_df["High_Risk_Flag"] == "High Risk").sum()
 
 with kpi1:
     st.markdown(
-        f"""<div class="kpi-card"><div class="kpi-title">Total Portfolio</div><div class="kpi-value">{total_cust:,}</div><div class="kpi-badge badge-info">Active Customers</div></div>""",
+        f"""<div class="kpi-card"><div class="kpi-title">Total Portfolio</div><div class="kpi-value">{total_cust:,}</div><div class="kpi-badge badge-info">Filtered Subset</div></div>""",
         unsafe_allow_html=True,
     )
 
@@ -284,13 +239,13 @@ with kpi2:
 
 with kpi3:
     st.markdown(
-        f"""<div class="kpi-card"><div class="kpi-title">Default Rate</div><div class="kpi-value">{overall_default_rate:.2f}%</div><div class="kpi-badge badge-danger">Portfolio Avg</div></div>""",
+        f"""<div class="kpi-card"><div class="kpi-title">Default Rate</div><div class="kpi-value">{overall_default_rate:.2f}%</div><div class="kpi-badge badge-danger">Portfolio Rate</div></div>""",
         unsafe_allow_html=True,
     )
 
 with kpi4:
     st.markdown(
-        f"""<div class="kpi-card"><div class="kpi-title">Avg Late Payments</div><div class="kpi-value">{avg_late:.2f}</div><div class="kpi-badge badge-warning">Delinquency Count</div></div>""",
+        f"""<div class="kpi-card"><div class="kpi-title">Avg Late Payments</div><div class="kpi-value">{avg_late:.2f}</div><div class="kpi-badge badge-info">Per Customer</div></div>""",
         unsafe_allow_html=True,
     )
 
@@ -304,84 +259,99 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 
 # =============================================================================
-# 5. VISUALIZATIONS (PLOTLY GRID + BUBBLE CHART)
+# 5. VISUALIZATIONS (PLOTLY CHARTS WITH EXPLICIT FONT COLORS)
 # =============================================================================
 PLOTLY_THEME = "plotly_dark"
-COLOR_ACCENT = "#38bdf8"
-COLOR_DANGER = "#f87171"
-COLOR_TEAL = "#2dd4bf"
-COLOR_PURPLE = "#c084fc"
 
-# Row 1 Charts
 r1_col1, r1_col2, r1_col3 = st.columns(3)
 
+# -----------------------------------------------------------------------------
+# Chart 1: Default Class Distribution
+# -----------------------------------------------------------------------------
 with r1_col1:
     st.markdown('<div class="chart-container">', unsafe_allow_html=True)
     st.subheader("1. Default Class Distribution (%)")
-    default_counts = (
-        filtered_df["default_payment_next_month"]
-        .value_counts(normalize=True)
-        .reset_index()
-    )
-    default_counts.columns = ["Status", "Percentage"]
-    default_counts["Percentage"] *= 100
-    default_counts["Status_Label"] = default_counts["Status"].map(
-        {0: "Non-Defaulters (0)", 1: "Defaulters (1)"}
-    )
+    
+    if total_cust > 0:
+        default_counts = (
+            filtered_df["default_payment_next_month"]
+            .value_counts(normalize=True)
+            .reset_index()
+        )
+        default_counts.columns = ["Status", "Percentage"]
+        default_counts["Percentage"] *= 100
+        default_counts["Status_Label"] = default_counts["Status"].map(
+            {0: "Non-Defaulters (0)", 1: "Defaulters (1)"}
+        )
 
-    fig1 = px.bar(
-        default_counts,
-        x="Status_Label",
-        y="Percentage",
-        text=default_counts["Percentage"].apply(lambda x: f"{x:.2f}%"),
-        color="Status_Label",
-        color_discrete_map={
-            "Non-Defaulters (0)": COLOR_ACCENT,
-            "Defaulters (1)": COLOR_DANGER,
-        },
-        template=PLOTLY_THEME,
-    )
-    fig1.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        showlegend=False,
-        margin=dict(l=10, r=10, t=30, b=10),
-        height=320,
-    )
-    st.plotly_chart(fig1, use_container_width=True)
+        fig1 = px.bar(
+            default_counts,
+            x="Status_Label",
+            y="Percentage",
+            text=default_counts["Percentage"].apply(lambda x: f"{x:.2f}%"),
+            color="Status_Label",
+            color_discrete_map={
+                "Non-Defaulters (0)": "#38bdf8",
+                "Defaulters (1)": "#f87171",
+            },
+            template=PLOTLY_THEME,
+        )
+        fig1.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#e6edf3"),
+            showlegend=False,
+            margin=dict(l=10, r=10, t=30, b=10),
+            height=320,
+        )
+        st.plotly_chart(fig1, use_container_width=True)
+    else:
+        st.warning("No data match the current filter selection.")
     st.markdown("</div>", unsafe_allow_html=True)
 
+# -----------------------------------------------------------------------------
+# Chart 2: Default Rate (%) Across Age Groups
+# -----------------------------------------------------------------------------
 with r1_col2:
     st.markdown('<div class="chart-container">', unsafe_allow_html=True)
     st.subheader("2. Default Rate by Age Group")
-    risk_age = (
-        filtered_df.groupby("Age_Group", observed=False)["default_payment_next_month"]
-        .mean()
-        .reset_index()
-    )
-    risk_age["Default Rate (%)"] = risk_age["default_payment_next_month"] * 100
 
-    fig2 = px.bar(
-        risk_age,
-        x="Age_Group",
-        y="Default Rate (%)",
-        text=risk_age["Default Rate (%)"].apply(lambda x: f"{x:.2f}%"),
-        color_discrete_sequence=[COLOR_TEAL],
-        template=PLOTLY_THEME,
-    )
-    fig2.update_layout(
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=10, r=10, t=30, b=10),
-        height=320,
-    )
-    st.plotly_chart(fig2, use_container_width=True)
+    if total_cust > 0:
+        risk_age = (
+            filtered_df.groupby("Age_Group", observed=False)["default_payment_next_month"]
+            .mean()
+            .reset_index()
+        )
+        risk_age["Default Rate (%)"] = risk_age["default_payment_next_month"] * 100
+
+        fig2 = px.bar(
+            risk_age,
+            x="Age_Group",
+            y="Default Rate (%)",
+            text=risk_age["Default Rate (%)"].apply(lambda x: f"{x:.2f}%"),
+            color_discrete_sequence=["#2dd4bf"],
+            template=PLOTLY_THEME,
+        )
+        fig2.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#e6edf3"),
+            margin=dict(l=10, r=10, t=30, b=10),
+            height=320,
+        )
+        st.plotly_chart(fig2, use_container_width=True)
+    else:
+        st.warning("No data match the current filter selection.")
     st.markdown("</div>", unsafe_allow_html=True)
 
+# -----------------------------------------------------------------------------
+# Chart 3: Default Rate (%) Across Occupations
+# -----------------------------------------------------------------------------
 with r1_col3:
     st.markdown('<div class="chart-container">', unsafe_allow_html=True)
     st.subheader("3. Default Rate by Occupation")
-    if "Occupation" in filtered_df.columns and not filtered_df.empty:
+
+    if "Occupation" in filtered_df.columns and total_cust > 0:
         occ_risk = (
             filtered_df.groupby("Occupation")["default_payment_next_month"]
             .mean()
@@ -396,29 +366,33 @@ with r1_col3:
             x="Default Rate (%)",
             orientation="h",
             text=occ_risk["Default Rate (%)"].apply(lambda x: f"{x:.2f}%"),
-            color_discrete_sequence=[COLOR_PURPLE],
+            color_discrete_sequence=["#c084fc"],
             template=PLOTLY_THEME,
         )
         fig3.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#e6edf3"),
             margin=dict(l=10, r=10, t=30, b=10),
             height=320,
         )
         st.plotly_chart(fig3, use_container_width=True)
     else:
-        st.info("Occupation field unavailable.")
+        st.warning("No data match the current filter selection.")
     st.markdown("</div>", unsafe_allow_html=True)
 
-# Row 2 Charts
-r2_col1, r2_col2 = st.columns([1, 2])
 
-# COOL ADDITION #3: Interactive Multi-Dimensional Risk Scatter Plot
+r2_col1, r2_col2 = st.columns([1, 1])
+
+# -----------------------------------------------------------------------------
+# Chart 4: Feature Correlations
+# -----------------------------------------------------------------------------
 with r2_col1:
     st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-    st.subheader("4. Risk Correlations")
+    st.subheader("4. Risk Feature Correlations")
+
     numeric_df = filtered_df.select_dtypes(include=[np.number])
-    if "default_payment_next_month" in numeric_df.columns and len(filtered_df) > 1:
+    if "default_payment_next_month" in numeric_df.columns and total_cust > 5:
         corr_ranked = (
             numeric_df.corr()["default_payment_next_month"]
             .drop(["default_payment_next_month", "Number_of_Defaults"], errors="ignore")
@@ -439,23 +413,31 @@ with r2_col1:
         fig5.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#e6edf3"),
             coloraxis_showscale=False,
             margin=dict(l=10, r=10, t=30, b=10),
             height=360,
         )
         st.plotly_chart(fig5, use_container_width=True)
+    else:
+        st.info("Insufficient variance or data to compute correlation.")
     st.markdown("</div>", unsafe_allow_html=True)
 
+# -----------------------------------------------------------------------------
+# Chart 5: Credit Utilization Boxplot by Default Status
+# -----------------------------------------------------------------------------
 with r2_col2:
     st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-    st.subheader("5. Credit Utilization Distribution by Default Status")
-    
-    if not filtered_df.empty:
-        filtered_df["Status_Label"] = filtered_df["default_payment_next_month"].map(
-            {0: "Non-Defaulters (0)", 1: "Defaulters (1)"}
-        )
+    st.subheader("5. Credit Utilization by Default Status")
+
+    if total_cust > 0:
+        filtered_df_copy = filtered_df.copy()
+        filtered_df_copy["Status_Label"] = filtered_df_copy[
+            "default_payment_next_month"
+        ].map({0: "Non-Defaulters (0)", 1: "Defaulters (1)"})
+
         fig_box = px.box(
-            filtered_df,
+            filtered_df_copy,
             x="Status_Label",
             y="Credit_Utilization",
             color="Status_Label",
@@ -469,6 +451,7 @@ with r2_col2:
         fig_box.update_layout(
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
+            font=dict(color="#e6edf3"),
             margin=dict(l=10, r=10, t=30, b=10),
             height=360,
             showlegend=False,
@@ -476,4 +459,6 @@ with r2_col2:
             yaxis_title="Credit Utilization (%)",
         )
         st.plotly_chart(fig_box, use_container_width=True)
+    else:
+        st.warning("No data match the current filter selection.")
     st.markdown("</div>", unsafe_allow_html=True)
