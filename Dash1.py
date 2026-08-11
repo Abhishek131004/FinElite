@@ -2,61 +2,76 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# =========================================================
-# PAGE CONFIGURATION
-# =========================================================
+# ============================================================
+# PAGE CONFIG
+# ============================================================
 
 st.set_page_config(
     page_title="Credit Card Banking Dashboard",
     page_icon="💳",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
-
-# =========================================================
-# CUSTOM CSS
-# =========================================================
+# ============================================================
+# CSS
+# ============================================================
 
 st.markdown("""
 <style>
 
-.stApp {
-    background-color: #f4f6f9;
+.block-container {
+    padding-top: 1rem;
 }
 
-.main-title {
-    font-size: 38px;
+.title {
+    font-size: 35px;
     font-weight: 800;
-    color: #1f2937;
 }
 
 .subtitle {
     color: #6b7280;
-    font-size: 17px;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
 [data-testid="stMetric"] {
     background-color: white;
-    padding: 15px;
-    border-radius: 12px;
     border: 1px solid #e5e7eb;
-    box-shadow: 0px 2px 8px rgba(0,0,0,0.05);
+    border-radius: 12px;
+    padding: 12px;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
 
-# =========================================================
-# LOAD EXCEL DATA
-# =========================================================
+# ============================================================
+# LOAD DATA
+# ============================================================
 
 @st.cache_data
 def load_data():
 
     df = pd.read_excel("Credir_Card_Bank.xlsx")
+
+    # Age Group
+    def age_group(age):
+
+        if age < 20:
+            return "Teen"
+
+        elif age < 30:
+            return "Young Adult"
+
+        elif age < 50:
+            return "Adult"
+
+        elif age < 60:
+            return "Middle Aged"
+
+        else:
+            return "Senior Citizen"
+
+    df["Age_Group"] = df["Age"].apply(age_group)
 
     return df
 
@@ -64,39 +79,37 @@ def load_data():
 df = load_data()
 
 
-# =========================================================
-# TITLE
-# =========================================================
+# ============================================================
+# HEADER
+# ============================================================
 
 st.markdown(
-    '<div class="main-title">💳 Credit Card Banking Analytics Dashboard</div>',
+    '<div class="title">💳 Credit Card Banking Analytics Dashboard</div>',
     unsafe_allow_html=True
 )
 
 st.markdown(
     '<div class="subtitle">'
-    'Interactive analysis of customer spending, transactions, credit and financial behaviour'
+    'Interactive customer spending, transaction and financial analysis'
     '</div>',
     unsafe_allow_html=True
 )
 
 
-# =========================================================
+# ============================================================
 # SIDEBAR FILTERS
-# =========================================================
+# ============================================================
 
-st.sidebar.title("🎯 Dashboard Filters")
-
-st.sidebar.markdown("---")
+st.sidebar.header("🎯 Dashboard Filters")
 
 
-# Employment Type
+# Employment
 
 employment_options = sorted(
     df["Employment_Type"].dropna().unique()
 )
 
-selected_employment = st.sidebar.multiselect(
+employment = st.sidebar.multiselect(
     "Employment Type",
     employment_options,
     default=employment_options
@@ -109,7 +122,7 @@ gender_options = sorted(
     df["Gender"].dropna().unique()
 )
 
-selected_gender = st.sidebar.multiselect(
+gender = st.sidebar.multiselect(
     "Gender",
     gender_options,
     default=gender_options
@@ -118,35 +131,27 @@ selected_gender = st.sidebar.multiselect(
 
 # Age Group
 
-def age_group(age):
-
-    if age < 20:
-        return "Teen"
-
-    elif age < 30:
-        return "Young Adult"
-
-    elif age < 50:
-        return "Adult"
-
-    elif age < 60:
-        return "Middle Aged"
-
-    else:
-        return "Senior Citizen"
-
-
-df["Age_Group"] = df["Age"].apply(age_group)
-
-
-age_group_options = list(
-    df["Age_Group"].unique()
+age_options = sorted(
+    df["Age_Group"].dropna().unique()
 )
 
-selected_age_group = st.sidebar.multiselect(
+age_group = st.sidebar.multiselect(
     "Age Group",
-    age_group_options,
-    default=age_group_options
+    age_options,
+    default=age_options
+)
+
+
+# Occupation
+
+occupation_options = sorted(
+    df["Occupation"].dropna().unique()
+)
+
+occupation = st.sidebar.multiselect(
+    "Occupation",
+    occupation_options,
+    default=occupation_options
 )
 
 
@@ -156,45 +161,45 @@ residential_options = sorted(
     df["Residential_Status"].dropna().unique()
 )
 
-selected_residential = st.sidebar.multiselect(
+residential = st.sidebar.multiselect(
     "Residential Status",
     residential_options,
     default=residential_options
 )
 
 
-# KYC Status
+# KYC
 
 kyc_options = sorted(
     df["KYC_Status"].dropna().unique()
 )
 
-selected_kyc = st.sidebar.multiselect(
+kyc = st.sidebar.multiselect(
     "KYC Status",
     kyc_options,
     default=kyc_options
 )
 
 
-# Fraud Flag
+# Fraud
 
 fraud_options = sorted(
     df["Fraud_Flag"].dropna().unique()
 )
 
-selected_fraud = st.sidebar.multiselect(
+fraud = st.sidebar.multiselect(
     "Fraud Flag",
     fraud_options,
     default=fraud_options
 )
 
 
-# Age Slider
+# Age Range
 
 min_age = int(df["Age"].min())
 max_age = int(df["Age"].max())
 
-selected_age = st.sidebar.slider(
+age_range = st.sidebar.slider(
     "Age Range",
     min_age,
     max_age,
@@ -202,128 +207,107 @@ selected_age = st.sidebar.slider(
 )
 
 
-# =========================================================
-# FILTER DATA
-# =========================================================
+# ============================================================
+# APPLY FILTERS
+# ============================================================
 
 filtered_df = df[
-    (df["Employment_Type"].isin(selected_employment))
+    (df["Employment_Type"].isin(employment))
     &
-    (df["Gender"].isin(selected_gender))
+    (df["Gender"].isin(gender))
     &
-    (df["Age_Group"].isin(selected_age_group))
+    (df["Age_Group"].isin(age_group))
     &
-    (df["Residential_Status"].isin(selected_residential))
+    (df["Occupation"].isin(occupation))
     &
-    (df["KYC_Status"].isin(selected_kyc))
+    (df["Residential_Status"].isin(residential))
     &
-    (df["Fraud_Flag"].isin(selected_fraud))
+    (df["KYC_Status"].isin(kyc))
     &
-    (df["Age"].between(selected_age[0], selected_age[1]))
+    (df["Fraud_Flag"].isin(fraud))
+    &
+    (df["Age"].between(age_range[0], age_range[1]))
 ].copy()
 
-
-# =========================================================
-# CHECK FILTERED DATA
-# =========================================================
 
 if filtered_df.empty:
 
     st.warning(
-        "⚠️ No records found for the selected filters."
+        "⚠️ No data available for selected filters."
     )
 
     st.stop()
 
 
-# =========================================================
-# KPI SECTION
-# =========================================================
+# ============================================================
+# TWO PAGES
+# ============================================================
 
-st.subheader("📊 Key Performance Indicators")
-
-col1, col2, col3, col4, col5, col6 = st.columns(6)
-
-
-# Total Customers
-
-col1.metric(
-    "👥 Customers",
-    f"{len(filtered_df):,}"
-)
-
-
-# Average Spending
-
-col2.metric(
-    "💰 Avg Spending",
-    f"₹{filtered_df['Avg_Monthly_Spending'].mean():,.0f}"
-)
-
-
-# Average Transactions
-
-col3.metric(
-    "🔄 Avg Transactions",
-    f"{filtered_df['Avg_Monthly_Transactions'].mean():,.0f}"
-)
-
-
-# Credit Score
-
-col4.metric(
-    "⭐ Avg Credit Score",
-    f"{filtered_df['Credit_Score'].mean():,.0f}"
-)
-
-
-# Credit Utilization
-
-col5.metric(
-    "💳 Credit Utilization",
-    f"{filtered_df['Credit_Utilization'].mean():.1f}%"
-)
-
-
-# Credit Limit
-
-col6.metric(
-    "🏦 Credit Limit",
-    f"₹{filtered_df['Credit_Limit'].sum()/10000000:.2f} Cr"
-)
-
-
-# =========================================================
-# TABS
-# =========================================================
-
-tab1, tab2, tab3, tab4, tab5 = st.tabs(
+page1, page2 = st.tabs(
     [
-        "📈 Spending Analysis",
-        "👥 Customer Behaviour",
-        "💰 Financial Analysis",
-        "⭐ Segmentation",
-        "📋 Customer Data"
+        "📊 PAGE 1 — CUSTOMER & SPENDING",
+        "💰 PAGE 2 — FINANCIAL ANALYSIS"
     ]
 )
 
 
-# =========================================================
-# TAB 1
-# SPENDING ANALYSIS
-# =========================================================
+# ============================================================
+# PAGE 1
+# ============================================================
 
-with tab1:
+with page1:
 
-    st.header("📈 Spending Analysis")
+    st.subheader("📊 Customer & Spending Analysis")
 
 
-    # -----------------------------------------------------
-    # Spending Distribution
-    # -----------------------------------------------------
+    # --------------------------------------------------------
+    # KPI
+    # --------------------------------------------------------
+
+    col1, col2, col3, col4, col5 = st.columns(5)
+
+
+    col1.metric(
+        "👥 Customers",
+        f"{len(filtered_df):,}"
+    )
+
+
+    col2.metric(
+        "💰 Avg Spending",
+        f"₹{filtered_df['Avg_Monthly_Spending'].mean():,.0f}"
+    )
+
+
+    col3.metric(
+        "🔄 Avg Transactions",
+        f"{filtered_df['Avg_Monthly_Transactions'].mean():,.0f}"
+    )
+
+
+    col4.metric(
+        "⭐ Avg Credit Score",
+        f"{filtered_df['Credit_Score'].mean():,.0f}"
+    )
+
+
+    col5.metric(
+        "💳 Credit Utilization",
+        f"{filtered_df['Credit_Utilization'].mean():.1f}%"
+    )
+
+
+    st.divider()
+
+
+    # --------------------------------------------------------
+    # ROW 1
+    # --------------------------------------------------------
 
     col1, col2 = st.columns(2)
 
+
+    # Spending Distribution
 
     with col1:
 
@@ -341,9 +325,7 @@ with tab1:
         )
 
 
-    # -----------------------------------------------------
-    # Age Group Spending
-    # -----------------------------------------------------
+    # Age Group
 
     with col2:
 
@@ -370,12 +352,14 @@ with tab1:
         )
 
 
-    # -----------------------------------------------------
-    # Occupation Spending
-    # -----------------------------------------------------
+    # --------------------------------------------------------
+    # ROW 2
+    # --------------------------------------------------------
 
     col1, col2 = st.columns(2)
 
+
+    # Occupation
 
     with col1:
 
@@ -402,9 +386,7 @@ with tab1:
         )
 
 
-    # -----------------------------------------------------
-    # Employment Spending
-    # -----------------------------------------------------
+    # Employment
 
     with col2:
 
@@ -429,67 +411,16 @@ with tab1:
         )
 
 
-    # -----------------------------------------------------
-    # Income vs Spending
-    # -----------------------------------------------------
+    # --------------------------------------------------------
+    # ROW 3
+    # --------------------------------------------------------
 
-    st.subheader("💰 Annual Income vs Monthly Spending")
-
-    fig = px.scatter(
-        filtered_df,
-        x="Annual_Income",
-        y="Avg_Monthly_Spending",
-        color="Credit_Score",
-        size="Credit_Limit",
-        hover_data=[
-            "Customer_ID",
-            "Age",
-            "Gender",
-            "Occupation",
-            "Employment_Type"
-        ],
-        title="Income vs Spending"
-    )
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
-
-
-# =========================================================
-# TAB 2
-# CUSTOMER BEHAVIOUR
-# =========================================================
-
-with tab2:
-
-    st.header("👥 Customer Behaviour")
-
-
-    col1, col2, col3 = st.columns(3)
-
-
-    # Monthly Transactions
-
-    with col1:
-
-        fig = px.histogram(
-            filtered_df,
-            x="Avg_Monthly_Transactions",
-            nbins=25,
-            title="Monthly Transactions"
-        )
-
-        st.plotly_chart(
-            fig,
-            use_container_width=True
-        )
+    col1, col2 = st.columns(2)
 
 
     # Gender
 
-    with col2:
+    with col1:
 
         gender_spending = (
             filtered_df
@@ -503,7 +434,7 @@ with tab2:
             gender_spending,
             x="Gender",
             y="Avg_Monthly_Spending",
-            title="Spending by Gender"
+            title="Average Spending by Gender"
         )
 
         st.plotly_chart(
@@ -512,76 +443,23 @@ with tab2:
         )
 
 
-    # Residential Status
-
-    with col3:
-
-        residential_spending = (
-            filtered_df
-            .groupby("Residential_Status")
-            ["Avg_Monthly_Spending"]
-            .mean()
-            .reset_index()
-        )
-
-        fig = px.bar(
-            residential_spending,
-            x="Residential_Status",
-            y="Avg_Monthly_Spending",
-            title="Spending by Residential Status"
-        )
-
-        st.plotly_chart(
-            fig,
-            use_container_width=True
-        )
-
-
-    # -----------------------------------------------------
-    # KYC / PAN / FRAUD
-    # -----------------------------------------------------
-
-    col1, col2, col3 = st.columns(3)
-
-
-    with col1:
-
-        kyc_spending = (
-            filtered_df
-            .groupby("KYC_Status")
-            ["Avg_Monthly_Spending"]
-            .mean()
-            .reset_index()
-        )
-
-        fig = px.bar(
-            kyc_spending,
-            x="KYC_Status",
-            y="Avg_Monthly_Spending",
-            title="Spending by KYC Status"
-        )
-
-        st.plotly_chart(
-            fig,
-            use_container_width=True
-        )
-
+    # Income vs Spending
 
     with col2:
 
-        pan_spending = (
-            filtered_df
-            .groupby("PAN_Verified")
-            ["Avg_Monthly_Spending"]
-            .mean()
-            .reset_index()
-        )
-
-        fig = px.bar(
-            pan_spending,
-            x="PAN_Verified",
+        fig = px.scatter(
+            filtered_df,
+            x="Annual_Income",
             y="Avg_Monthly_Spending",
-            title="Spending by PAN Verification"
+            color="Credit_Score",
+            size="Credit_Limit",
+            hover_data=[
+                "Customer_ID",
+                "Age",
+                "Gender",
+                "Occupation"
+            ],
+            title="Annual Income vs Monthly Spending"
         )
 
         st.plotly_chart(
@@ -590,40 +468,58 @@ with tab2:
         )
 
 
-    with col3:
+# ============================================================
+# PAGE 2
+# ============================================================
 
-        fraud_spending = (
-            filtered_df
-            .groupby("Fraud_Flag")
-            ["Avg_Monthly_Spending"]
-            .mean()
-            .reset_index()
-        )
+with page2:
 
-        fig = px.bar(
-            fraud_spending,
-            x="Fraud_Flag",
-            y="Avg_Monthly_Spending",
-            title="Spending by Fraud Flag"
-        )
-
-        st.plotly_chart(
-            fig,
-            use_container_width=True
-        )
+    st.subheader("💰 Financial Behaviour Analysis")
 
 
-# =========================================================
-# TAB 3
-# FINANCIAL ANALYSIS
-# =========================================================
+    # --------------------------------------------------------
+    # KPI
+    # --------------------------------------------------------
 
-with tab3:
-
-    st.header("💰 Financial Behaviour")
+    col1, col2, col3, col4, col5 = st.columns(5)
 
 
-    # Create groups
+    col1.metric(
+        "💵 Avg EMI",
+        f"₹{filtered_df['EMI_Per_Month'].mean():,.0f}"
+    )
+
+
+    col2.metric(
+        "📉 Avg DTI",
+        f"{filtered_df['Debt_To_Income_Ratio'].mean():.2f}"
+    )
+
+
+    col3.metric(
+        "🏦 Avg Savings",
+        f"₹{filtered_df['Savings_Balance'].mean():,.0f}"
+    )
+
+
+    col4.metric(
+        "📈 Avg Investment",
+        f"₹{filtered_df['Investment_Value'].mean():,.0f}"
+    )
+
+
+    col5.metric(
+        "💳 Total Credit Limit",
+        f"₹{filtered_df['Credit_Limit'].sum()/10000000:.2f} Cr"
+    )
+
+
+    st.divider()
+
+
+    # --------------------------------------------------------
+    # CREATE FINANCIAL GROUPS
+    # --------------------------------------------------------
 
     filtered_df["EMI_Group"] = pd.cut(
         filtered_df["EMI_Per_Month"],
@@ -677,16 +573,18 @@ with tab3:
     )
 
 
-    # -----------------------------------------------------
-    # EMI
-    # -----------------------------------------------------
+    # --------------------------------------------------------
+    # ROW 1
+    # --------------------------------------------------------
 
     col1, col2 = st.columns(2)
 
 
+    # EMI
+
     with col1:
 
-        emi = (
+        emi_data = (
             filtered_df
             .groupby(
                 "EMI_Group",
@@ -697,7 +595,7 @@ with tab3:
         )
 
         fig = px.bar(
-            emi,
+            emi_data,
             x="EMI_Group",
             y="Avg_Monthly_Spending",
             title="Spending by EMI Group"
@@ -709,13 +607,11 @@ with tab3:
         )
 
 
-    # -----------------------------------------------------
     # DTI
-    # -----------------------------------------------------
 
     with col2:
 
-        dti = (
+        dti_data = (
             filtered_df
             .groupby(
                 "DTI_Group",
@@ -726,11 +622,11 @@ with tab3:
         )
 
         fig = px.line(
-            dti,
+            dti_data,
             x="DTI_Group",
             y="Avg_Monthly_Spending",
             markers=True,
-            title="Spending by Debt-to-Income Ratio"
+            title="Spending by Debt-to-Income Group"
         )
 
         st.plotly_chart(
@@ -739,16 +635,18 @@ with tab3:
         )
 
 
-    # -----------------------------------------------------
-    # Savings
-    # -----------------------------------------------------
+    # --------------------------------------------------------
+    # ROW 2
+    # --------------------------------------------------------
 
     col1, col2 = st.columns(2)
 
 
+    # Savings
+
     with col1:
 
-        savings = (
+        savings_data = (
             filtered_df
             .groupby(
                 "Savings_Group",
@@ -759,10 +657,10 @@ with tab3:
         )
 
         fig = px.bar(
-            savings,
+            savings_data,
             x="Savings_Group",
             y="Avg_Monthly_Spending",
-            title="Spending by Savings Balance"
+            title="Spending by Savings Group"
         )
 
         st.plotly_chart(
@@ -771,13 +669,11 @@ with tab3:
         )
 
 
-    # -----------------------------------------------------
     # Investment
-    # -----------------------------------------------------
 
     with col2:
 
-        investment = (
+        investment_data = (
             filtered_df
             .groupby(
                 "Investment_Group",
@@ -788,10 +684,10 @@ with tab3:
         )
 
         fig = px.bar(
-            investment,
+            investment_data,
             x="Investment_Group",
             y="Avg_Monthly_Spending",
-            title="Spending by Investment Value"
+            title="Spending by Investment Group"
         )
 
         st.plotly_chart(
@@ -800,287 +696,68 @@ with tab3:
         )
 
 
-    # -----------------------------------------------------
+    # --------------------------------------------------------
+    # ROW 3
+    # --------------------------------------------------------
+
+    col1, col2 = st.columns(2)
+
+
     # Credit Utilization
-    # -----------------------------------------------------
 
-    st.subheader("💳 Credit Utilization")
-
-    fig = px.scatter(
-        filtered_df,
-        x="Credit_Limit",
-        y="Credit_Utilization",
-        size="Avg_Monthly_Spending",
-        color="Credit_Score",
-        hover_data=["Customer_ID"],
-        title="Credit Limit vs Credit Utilization"
-    )
-
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
-
-
-# =========================================================
-# TAB 4
-# CUSTOMER SEGMENTATION
-# =========================================================
-
-with tab4:
-
-    st.header("⭐ Customer Segmentation")
-
-
-    # -----------------------------------------------------
-    # High Value Customers
-    # -----------------------------------------------------
-
-    income_75 = df["Annual_Income"].quantile(0.75)
-
-    credit_limit_75 = df["Credit_Limit"].quantile(0.75)
-
-
-    high_value = filtered_df[
-        (filtered_df["Annual_Income"] > income_75)
-        &
-        (filtered_df["Credit_Limit"] > credit_limit_75)
-    ]
-
-
-    # -----------------------------------------------------
-    # Low Engagement
-    # -----------------------------------------------------
-
-    transaction_25 = (
-        df["Avg_Monthly_Transactions"]
-        .quantile(0.25)
-    )
-
-    spending_25 = (
-        df["Avg_Monthly_Spending"]
-        .quantile(0.25)
-    )
-
-
-    low_engagement = filtered_df[
-        (filtered_df["Avg_Monthly_Transactions"] < transaction_25)
-        &
-        (filtered_df["Avg_Monthly_Spending"] < spending_25)
-    ]
-
-
-    # -----------------------------------------------------
-    # Fraud
-    # -----------------------------------------------------
-
-    fraud_customers = filtered_df[
-        filtered_df["Fraud_Flag"] == "Yes"
-    ]
-
-
-    # KPI
-
-    col1, col2, col3 = st.columns(3)
-
-
-    col1.metric(
-        "⭐ High Value Customers",
-        len(high_value)
-    )
-
-
-    col2.metric(
-        "⚠️ Low Engagement",
-        len(low_engagement)
-    )
-
-
-    col3.metric(
-        "🚨 Fraud Flagged",
-        len(fraud_customers)
-    )
-
-
-    # -----------------------------------------------------
-    # Segment Selection
-    # -----------------------------------------------------
-
-    segment = st.selectbox(
-        "Select Segment",
-        [
-            "High Value Customers",
-            "Low Engagement Customers",
-            "Fraud Flagged Customers"
-        ]
-    )
-
-
-    if segment == "High Value Customers":
-
-        segment_df = high_value
-
-
-    elif segment == "Low Engagement Customers":
-
-        segment_df = low_engagement
-
-
-    else:
-
-        segment_df = fraud_customers
-
-
-    # Display
-
-    st.dataframe(
-        segment_df,
-        use_container_width=True,
-        hide_index=True
-    )
-
-
-    # Download
-
-    csv = segment_df.to_csv(
-        index=False
-    ).encode("utf-8")
-
-
-    st.download_button(
-        "⬇️ Download Segment",
-        csv,
-        "customer_segment.csv",
-        "text/csv"
-    )
-
-
-# =========================================================
-# TAB 5
-# CUSTOMER DATA
-# =========================================================
-
-with tab5:
-
-    st.header("📋 Customer Data Explorer")
-
-
-    search = st.text_input(
-        "🔎 Search Customer ID"
-    )
-
-
-    display_df = filtered_df.copy()
-
-
-    if search:
-
-        display_df = display_df[
-            display_df["Customer_ID"]
-            .astype(str)
-            .str.contains(
-                search,
-                case=False,
-                na=False
-            )
-        ]
-
-
-    st.write(
-        f"Showing {len(display_df):,} records"
-    )
-
-
-    st.dataframe(
-        display_df,
-        use_container_width=True,
-        hide_index=True
-    )
-
-
-    # Download filtered data
-
-    csv = display_df.to_csv(
-        index=False
-    ).encode("utf-8")
-
-
-    st.download_button(
-        "⬇️ Download Filtered Data",
-        csv,
-        "filtered_credit_card_data.csv",
-        "text/csv"
-    )
-
-
-# =========================================================
-# AUTOMATIC INSIGHTS
-# =========================================================
-
-st.divider()
-
-st.header("💡 Business Insights")
-
-
-age_analysis = (
-    filtered_df
-    .groupby("Age_Group")
-    ["Avg_Monthly_Spending"]
-    .mean()
-)
-
-
-occupation_analysis = (
-    filtered_df
-    .groupby("Occupation")
-    ["Avg_Monthly_Spending"]
-    .mean()
-)
-
-
-employment_analysis = (
-    filtered_df
-    .groupby("Employment_Type")
-    ["Avg_Monthly_Spending"]
-    .mean()
-)
-
-
-highest_age = age_analysis.idxmax()
-
-highest_occupation = occupation_analysis.idxmax()
-
-highest_employment = employment_analysis.idxmax()
-
-
-col1, col2, col3 = st.columns(3)
-
-
-col1.info(
-    f"👥 Highest spending age group:\n\n"
-    f"**{highest_age}**"
-)
-
-
-col2.info(
-    f"💼 Highest spending occupation:\n\n"
-    f"**{highest_occupation}**"
-)
-
-
-col3.info(
-    f"🏢 Highest spending employment type:\n\n"
-    f"**{highest_employment}**"
-)
-
-
-# =========================================================
+    with col1:
+
+        fig = px.scatter(
+            filtered_df,
+            x="Credit_Limit",
+            y="Credit_Utilization",
+            size="Avg_Monthly_Spending",
+            color="Credit_Score",
+            hover_data=[
+                "Customer_ID",
+                "Age"
+            ],
+            title="Credit Limit vs Credit Utilization"
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+
+    # Transactions
+
+    with col2:
+
+        transaction_data = (
+            filtered_df
+            .groupby("Employment_Type")
+            ["Avg_Monthly_Transactions"]
+            .mean()
+            .reset_index()
+        )
+
+        fig = px.bar(
+            transaction_data,
+            x="Employment_Type",
+            y="Avg_Monthly_Transactions",
+            title="Average Transactions by Employment Type"
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True
+        )
+
+
+# ============================================================
 # FOOTER
-# =========================================================
+# ============================================================
 
 st.divider()
 
 st.caption(
     "Credit Card Banking Analytics Dashboard | "
-    "Python + Pandas + Plotly + Streamlit"
+    "Python • Pandas • Plotly • Streamlit"
 )
