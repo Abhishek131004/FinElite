@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 # PAGE CONFIG
 # ============================================================
 st.set_page_config(
-    page_title="Credit Card Banking Intelligence Dashboard",
+    page_title="Credit Card Banking Intelligence",
     page_icon="💳",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -25,9 +25,12 @@ st.markdown("""
     color: #f3f4f6;
 }
 .block-container {
-    max-width: 1550px;
-    padding-top: 1rem;
+    max-width: 1650px;
+    width: 100%;
+    padding-top: 5.2rem !important;
     padding-bottom: 2rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
 }
 section[data-testid="stSidebar"] {
     background: #111827 !important;
@@ -37,15 +40,30 @@ section[data-testid="stSidebar"] * {
     color: #f3f4f6 !important;
 }
 .dashboard-title {
-    font-size: 2.35rem;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: clamp(1.7rem, 2.8vw, 2.45rem);
     font-weight: 800;
     color: #60a5fa;
-    margin-bottom: 0;
+    margin: 0 0 10px 0;
+    padding: 2px 0 4px 0;
+    line-height: 1.35;
+    white-space: normal;
+    overflow: visible;
+    word-break: normal;
+    overflow-wrap: normal;
+    text-align: left;
 }
 .dashboard-subtitle {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
     color: #9ca3af;
     font-size: 1rem;
-    margin-bottom: 18px;
+    line-height: 1.5;
+    margin: 0 0 24px 0;
+    padding: 0;
 }
 .section-title {
     background: linear-gradient(90deg, #172554, #2563eb);
