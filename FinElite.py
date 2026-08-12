@@ -1,5 +1,4 @@
 import os
-import random
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -25,16 +24,11 @@ st.markdown("""
     background: #0b0f19;
     color: #f3f4f6;
 }
-
 .block-container {
-    max-width: 1650px;
-    width: 100%;
-    padding-top: 2.6rem !important;
+    max-width: 1550px;
+    padding-top: 1rem;
     padding-bottom: 2rem;
-    padding-left: 2rem;
-    padding-right: 2rem;
 }
-
 section[data-testid="stSidebar"] {
     background: #111827 !important;
     border-right: 1px solid #1f2937;
@@ -42,67 +36,17 @@ section[data-testid="stSidebar"] {
 section[data-testid="stSidebar"] * {
     color: #f3f4f6 !important;
 }
-
-/* FIXED MAIN HEADING */
 .dashboard-title {
-    display: block;
-    width: 100%;
-    font-size: clamp(1.55rem, 3vw, 2.55rem);
+    font-size: 2.35rem;
     font-weight: 800;
     color: #60a5fa;
-    margin: 0 0 8px 0;
-    padding: 4px 0 2px 0;
-    line-height: 1.25;
-    white-space: normal;
-    overflow: visible;
-    word-break: normal;
-    overflow-wrap: normal;
-    text-align: left;
+    margin-bottom: 0;
 }
-
 .dashboard-subtitle {
-    display: block;
-    width: 100%;
     color: #9ca3af;
     font-size: 1rem;
-    line-height: 1.5;
-    margin: 0 0 22px 0;
+    margin-bottom: 18px;
 }
-
-/* KPI FIX */
-.kpi-card {
-    background: #111827;
-    border: 1px solid #1f2937;
-    border-radius: 14px;
-    padding: 15px 10px;
-    min-height: 112px;
-    height: 100%;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    box-sizing: border-box;
-    box-shadow: 0 4px 14px rgba(0,0,0,.30);
-}
-
-.kpi-title {
-    color: #9ca3af;
-    font-size: .73rem;
-    line-height: 1.35;
-    text-transform: uppercase;
-    letter-spacing: .35px;
-    min-height: 30px;
-}
-
-.kpi-value {
-    color: #60a5fa;
-    font-size: clamp(1.25rem, 2vw, 1.8rem);
-    line-height: 1.2;
-    font-weight: 750;
-    margin-top: 6px;
-    overflow-wrap: anywhere;
-}
-
 .section-title {
     background: linear-gradient(90deg, #172554, #2563eb);
     padding: 10px 16px;
@@ -111,7 +55,26 @@ section[data-testid="stSidebar"] * {
     font-weight: 700;
     margin: 18px 0 12px 0;
 }
-
+.kpi-card {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: 0 4px 14px rgba(0,0,0,.30);
+}
+.kpi-title {
+    color: #9ca3af;
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+.kpi-value {
+    color: #60a5fa;
+    font-size: 1.8rem;
+    font-weight: 750;
+    margin-top: 5px;
+}
 .chart-card {
     background: #111827;
     border: 1px solid #1f2937;
@@ -119,7 +82,6 @@ section[data-testid="stSidebar"] * {
     padding: 10px 14px 4px 14px;
     margin-bottom: 12px;
 }
-
 .insight-card {
     background: #111827;
     border-left: 4px solid #22c55e;
@@ -127,7 +89,6 @@ section[data-testid="stSidebar"] * {
     padding: 12px 16px;
     margin: 7px 0;
 }
-
 .risk-card {
     background: #111827;
     border-left: 4px solid #f97316;
@@ -136,77 +97,8 @@ section[data-testid="stSidebar"] * {
     margin: 7px 0;
 }
 
-@media (max-width: 1100px) {
-    .block-container {
-        padding-left: 1rem;
-        padding-right: 1rem;
-        padding-top: 2rem !important;
-    }
-    .dashboard-title {
-        font-size: 1.8rem;
-    }
-}
-
-@media (max-width: 700px) {
-    .dashboard-title {
-        font-size: 1.45rem;
-    }
-    .dashboard-subtitle {
-        font-size: .9rem;
-    }
-}
-
-/* ============================================================
-   LOGIN PAGE
-   ============================================================ */
-.login-wrapper {
-    max-width: 520px;
-    margin: 70px auto 0 auto;
-    padding: 0 18px;
-}
-.login-box {
-    background: #111827;
-    border: 1px solid #263244;
-    border-radius: 20px;
-    padding: 34px 34px 30px 34px;
-    box-shadow: 0 18px 55px rgba(0,0,0,.45);
-}
-.login-icon {
-    text-align: center;
-    font-size: 3.2rem;
-    margin-bottom: 8px;
-}
-.login-heading {
-    text-align: center;
-    color: #60a5fa;
-    font-size: 2rem;
-    font-weight: 800;
-    line-height: 1.2;
-    margin: 0 0 8px 0;
-}
-.login-description {
-    text-align: center;
-    color: #9ca3af;
-    font-size: .95rem;
-    line-height: 1.5;
-    margin: 0 0 24px 0;
-}
-.captcha-display {
-    background: #0b1220;
-    border: 1px dashed #60a5fa;
-    border-radius: 10px;
-    padding: 13px;
-    text-align: center;
-    color: #e5e7eb;
-    font-size: 1.25rem;
-    font-weight: 800;
-    letter-spacing: 2px;
-    margin: 5px 0 10px 0;
-}
-
-
-/* LOGIN */
-.login-wrapper { max-width: 560px; margin: 5vh auto 0 auto; }
+/* LOGIN PAGE */
+.login-wrapper { max-width:560px; margin:5vh auto 0 auto; }
 .login-title { text-align:center; font-size:2.2rem; font-weight:800; color:#60a5fa; line-height:1.25; margin-bottom:8px; }
 .login-subtitle { text-align:center; color:#9ca3af; margin-bottom:25px; }
 .login-icon { text-align:center; font-size:3.2rem; margin-bottom:5px; }
@@ -219,140 +111,11 @@ section[data-testid="stSidebar"] * {
 # ============================================================
 # 🔐 LOGIN SYSTEM
 # ============================================================
-# Change these credentials whenever you want.
-LOGIN_USERNAME = "admin"
-LOGIN_PASSWORD = "Admin@123"
-
-def new_captcha():
-    a = random.randint(1, 9)
-    b = random.randint(1, 9)
-    op = random.choice(["+", "-"])
-    if op == "-" and b > a:
-        a, b = b, a
-    answer = a + b if op == "+" else a - b
-    return f"{a} {op} {b} = ?", answer
-
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
-
-if "captcha_question" not in st.session_state or "captcha_answer" not in st.session_state:
-    q, ans = new_captcha()
-    st.session_state.captcha_question = q
-    st.session_state.captcha_answer = ans
-
-# -------- LOGIN SCREEN --------
-if not st.session_state.authenticated:
-
-    # Hide the sidebar while the user is not logged in.
-    st.markdown(
-        """
-        <style>
-        section[data-testid="stSidebar"] {
-            display: none !important;
-        }
-        header[data-testid="stHeader"] {
-            background: transparent !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        """
-        <div class="login-wrapper">
-            <div class="login-box">
-                <div class="login-icon">💳</div>
-                <div class="login-heading">Credit Card Banking</div>
-                <div class="login-description">
-                    Secure Login to Credit Card Banking Intelligence Dashboard
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-    left, login_col, right = st.columns([1, 2, 1])
-
-    with login_col:
-        username = st.text_input(
-            "👤 Username",
-            placeholder="Enter username",
-            key="auth_username"
-        )
-
-        password = st.text_input(
-            "🔒 Password",
-            type="password",
-            placeholder="Enter password",
-            key="auth_password"
-        )
-
-        st.markdown(
-            f'<div class="captcha-display">CAPTCHA&nbsp;&nbsp; {st.session_state.captcha_question}</div>',
-            unsafe_allow_html=True
-        )
-
-        captcha = st.text_input(
-            "🧩 Enter CAPTCHA answer",
-            placeholder="Enter answer",
-            key="auth_captcha"
-        )
-
-        if st.button(
-            "🔓 Login",
-            type="primary",
-            use_container_width=True
-        ):
-            try:
-                captcha_correct = int(captcha.strip()) == st.session_state.captcha_answer
-            except (ValueError, AttributeError):
-                captcha_correct = False
-
-            if (
-                username.strip() == LOGIN_USERNAME
-                and password == LOGIN_PASSWORD
-                and captcha_correct
-            ):
-                st.session_state.authenticated = True
-                # Remove login-only values.
-                for key in ["auth_username", "auth_password", "auth_captcha"]:
-                    st.session_state.pop(key, None)
-                st.rerun()
-            else:
-                st.error("❌ Invalid username, password, or CAPTCHA.")
-
-                # New CAPTCHA after a failed attempt.
-                q, ans = new_captcha()
-                st.session_state.captcha_question = q
-                st.session_state.captcha_answer = ans
-
-    st.stop()
-
-# -------- LOGOUT --------
-with st.sidebar:
-    st.markdown("## 🔐 Session")
-    st.success("Logged in as admin")
-    if st.button("🚪 Logout", use_container_width=True):
-        st.session_state.authenticated = False
-
-        q, ans = new_captcha()
-        st.session_state.captcha_question = q
-        st.session_state.captcha_answer = ans
-
-        st.rerun()
-
-    st.markdown("---")
-
-
-# ============================================================
-# 🔐 LOGIN SYSTEM — MUST LOGIN BEFORE DASHBOARD
-# ============================================================
 LOGIN_USERNAME = "admin"
 LOGIN_PASSWORD = "Admin@123"
 
 def generate_captcha():
+    import secrets
     a = secrets.randbelow(9) + 1
     b = secrets.randbelow(9) + 1
     op = secrets.choice(["+", "-"])
@@ -382,17 +145,16 @@ if not st.session_state.authenticated:
     _, login_col, _ = st.columns([1, 2, 1])
     with login_col:
         st.markdown("### 🔐 Login")
-
-        username = st.text_input("👤 Username", placeholder="Enter username")
-        password = st.text_input("🔒 Password", type="password", placeholder="Enter password")
+        username = st.text_input("👤 Username", placeholder="Enter username", key="login_username")
+        password = st.text_input("🔒 Password", type="password", placeholder="Enter password", key="login_password")
 
         st.markdown(
             f'<div class="captcha-display">🧩 CAPTCHA&nbsp;&nbsp; {st.session_state.captcha_question}</div>',
             unsafe_allow_html=True
         )
-        captcha = st.text_input("Enter CAPTCHA Answer", placeholder="Enter answer")
+        captcha = st.text_input("Enter CAPTCHA Answer", placeholder="Enter answer", key="login_captcha")
 
-        if st.button("🔓 Login to Dashboard", type="primary", use_container_width=True):
+        if st.button("🔓 Login to Dashboard", type="primary", use_container_width=True, key="login_button"):
             try:
                 captcha_ok = int(captcha.strip()) == int(st.session_state.captcha_answer)
             except (ValueError, AttributeError):
@@ -417,17 +179,18 @@ if not st.session_state.authenticated:
     st.stop()
 
 # ============================================================
-# 🚪 LOGOUT — SHOWN AFTER LOGIN
+# 🚪 LOGOUT
 # ============================================================
-st.sidebar.markdown("### 🔐 Session")
-if st.sidebar.button("🚪 Logout", use_container_width=True):
-    st.session_state.authenticated = False
-    q, ans = generate_captcha()
-    st.session_state.captcha_question = q
-    st.session_state.captcha_answer = ans
-    st.rerun()
-
-st.sidebar.markdown("---")
+with st.sidebar:
+    st.markdown("### 🔐 Session")
+    if st.button("🚪 Logout", use_container_width=True, key="logout_button"):
+        st.session_state.authenticated = False
+        st.session_state.auth_error = ""
+        q, ans = generate_captcha()
+        st.session_state.captcha_question = q
+        st.session_state.captcha_answer = ans
+        st.rerun()
+    st.markdown("---")
 
 # ============================================================
 # DATA LOADING
