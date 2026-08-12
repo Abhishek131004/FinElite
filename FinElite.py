@@ -155,7 +155,7 @@ if not st.session_state.authenticated:
         '<div class="login-wrapper">'
         '<div class="login-icon">💳</div>'
         '<div class="login-title">Credit Card Banking</div>'
-        '<div class="login-subtitle">Secure Login to Credit Card Banking Intelligence Dashboard</div>'
+        '<div class="login-subtitle">Secure Login to Credit Card Banking Intelligence</div>'
         '</div>',
         unsafe_allow_html=True
     )
