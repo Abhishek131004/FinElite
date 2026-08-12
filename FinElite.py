@@ -453,7 +453,7 @@ def chart(fig, height=380):
 # HEADER
 # ============================================================
 st.markdown(
-    '<div class="dashboard-title">💳 Credit Card Banking Intelligence Dashboard</div>',
+    '<div class="dashboard-title">💳 Credit Card Banking Intelligence</div>',
     unsafe_allow_html=True
 )
 st.markdown(
@@ -851,6 +851,6 @@ with ic2:
 # ============================================================
 st.divider()
 st.caption(
-    "💳 Credit Card Banking Intelligence Dashboard | "
+    "💳 Credit Card Banking Intelligence | "
     "Python • Pandas • NumPy • Plotly • Streamlit"
 )
