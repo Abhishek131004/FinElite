@@ -74,24 +74,43 @@ section[data-testid="stSidebar"] * {
     margin: 18px 0 12px 0;
 }
 .kpi-card {
+    width: 100%;
+    min-width: 0;
+    min-height: 112px;
+    box-sizing: border-box;
     background: #111827;
     border: 1px solid #1f2937;
     border-radius: 14px;
-    padding: 16px;
+    padding: 12px 6px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
     box-shadow: 0 4px 14px rgba(0,0,0,.30);
 }
 .kpi-title {
+    width: 100%;
     color: #9ca3af;
-    font-size: .78rem;
+    font-size: .62rem;
+    line-height: 1.25;
     text-transform: uppercase;
-    letter-spacing: .5px;
+    letter-spacing: .25px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .kpi-value {
+    width: 100%;
     color: #60a5fa;
-    font-size: 1.8rem;
+    font-size: 1.35rem;
+    line-height: 1.2;
     font-weight: 750;
-    margin-top: 5px;
+    margin-top: 7px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .chart-card {
     background: #111827;
@@ -121,6 +140,17 @@ section[data-testid="stSidebar"] * {
 .login-subtitle { text-align:center; color:#9ca3af; margin-bottom:25px; }
 .login-icon { text-align:center; font-size:3.2rem; margin-bottom:5px; }
 .captcha-display { background:#0f172a; border:1px dashed #3b82f6; border-radius:10px; padding:13px; text-align:center; color:#dbeafe; font-size:1.2rem; font-weight:800; letter-spacing:2px; margin:8px 0 10px 0; }
+
+
+@media (max-width: 1100px) {
+    .kpi-title { font-size: .58rem; }
+    .kpi-value { font-size: 1.15rem; }
+}
+@media (max-width: 700px) {
+    .kpi-card { padding: 10px 4px; min-height: 100px; }
+    .kpi-title { font-size: .55rem; }
+    .kpi-value { font-size: 1rem; }
+}
 
 </style>
 """, unsafe_allow_html=True)
@@ -154,8 +184,8 @@ if not st.session_state.authenticated:
     st.markdown(
         '<div class="login-wrapper">'
         '<div class="login-icon">💳</div>'
-        '<div class="login-title">Credit Card Banking</div>'
-        '<div class="login-subtitle">Secure Login to Credit Card Banking Intelligence</div>'
+        '<div class="login-title">Welcome to FinElite</div>'
+        '<div class="login-subtitle">AI ........................</div>'
         '</div>',
         unsafe_allow_html=True
     )
@@ -305,7 +335,7 @@ def load_data(uploaded_file=None):
 # SIDEBAR
 # ============================================================
 st.sidebar.title("🎛️ Banking Control Center")
-st.sidebar.caption("")
+st.sidebar.caption("All three dashboards are merged into one interactive view.")
 uploaded_file = st.sidebar.file_uploader("📁 Upload Credit Card Excel", type=["xlsx", "xls"])
 
 try:
@@ -489,7 +519,7 @@ kpis = [
     ("⚠️ Default Rate", f"{default_rate:.2f}%"),
     ("🛡️ High Risk Customers", f"{high_risk_count:,}")
 ]
-cols = st.columns(len(kpis))
+cols = st.columns(len(kpis), gap="small")
 for col, (title, value) in zip(cols, kpis):
     with col:
         st.markdown(
