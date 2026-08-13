@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 # PAGE CONFIG
 # ============================================================
 st.set_page_config(
-    page_title="FinElite; Your Credit Game Changer",
+    page_title="FinElite : Your Credit Game Changer",
     page_icon="💳",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -483,7 +483,7 @@ def chart(fig, height=380):
 # HEADER
 # ============================================================
 st.markdown(
-    '<div class="dashboard-title">💳FinElite; Your Credit Game Changer</div>',
+    '<div class="dashboard-title">💳FinElite : Your Credit Game Changer</div>',
     unsafe_allow_html=True
 )
 st.markdown(
