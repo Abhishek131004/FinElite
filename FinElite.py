@@ -185,7 +185,7 @@ if not st.session_state.authenticated:
         '<div class="login-wrapper">'
         '<div class="login-icon">💳</div>'
         '<div class="login-title">Welcome to FinElite</div>'
-        '<div class="login-subtitle">AI ........................</div>'
+        '<div class="login-subtitle">Your Credit Game Changer</div>'
         '</div>',
         unsafe_allow_html=True
     )
