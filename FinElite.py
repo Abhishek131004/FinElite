@@ -335,7 +335,7 @@ def load_data(uploaded_file=None):
 # SIDEBAR
 # ============================================================
 st.sidebar.title("🎛️ Banking Control Center")
-st.sidebar.caption("All three dashboards are merged into one interactive view.")
+st.sidebar.caption("")
 uploaded_file = st.sidebar.file_uploader("📁 Upload Credit Card Excel", type=["xlsx", "xls"])
 
 try:
