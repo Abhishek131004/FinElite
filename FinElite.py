@@ -74,24 +74,43 @@ section[data-testid="stSidebar"] * {
     margin: 18px 0 12px 0;
 }
 .kpi-card {
+    width: 100%;
+    min-width: 0;
+    min-height: 112px;
+    box-sizing: border-box;
     background: #111827;
     border: 1px solid #1f2937;
     border-radius: 14px;
-    padding: 16px;
+    padding: 12px 6px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
     box-shadow: 0 4px 14px rgba(0,0,0,.30);
 }
 .kpi-title {
+    width: 100%;
     color: #9ca3af;
-    font-size: .78rem;
+    font-size: .62rem;
+    line-height: 1.25;
     text-transform: uppercase;
-    letter-spacing: .5px;
+    letter-spacing: .25px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .kpi-value {
+    width: 100%;
     color: #60a5fa;
-    font-size: 1.8rem;
+    font-size: 1.35rem;
+    line-height: 1.2;
     font-weight: 750;
-    margin-top: 5px;
+    margin-top: 7px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .chart-card {
     background: #111827;
@@ -115,70 +134,22 @@ section[data-testid="stSidebar"] * {
     margin: 7px 0;
 }
 
-/* ============================================================
-   PROFESSIONAL BANKING LOGIN
-   ============================================================ */
-.login-wrapper {
-    max-width: 520px;
-    margin: 4vh auto 0 auto;
+/* LOGIN PAGE */
+.login-wrapper { max-width:560px; margin:5vh auto 0 auto; }
+.login-title { text-align:center; font-size:2.2rem; font-weight:800; color:#60a5fa; line-height:1.25; margin-bottom:8px; }
+.login-subtitle { text-align:center; color:#9ca3af; margin-bottom:25px; }
+.login-icon { text-align:center; font-size:3.2rem; margin-bottom:5px; }
+.captcha-display { background:#0f172a; border:1px dashed #3b82f6; border-radius:10px; padding:13px; text-align:center; color:#dbeafe; font-size:1.2rem; font-weight:800; letter-spacing:2px; margin:8px 0 10px 0; }
+
+
+@media (max-width: 1100px) {
+    .kpi-title { font-size: .58rem; }
+    .kpi-value { font-size: 1.15rem; }
 }
-.login-brand {
-    text-align: center;
-    margin-bottom: 22px;
-}
-.login-brand-icon {
-    width: 68px;
-    height: 68px;
-    margin: 0 auto 14px auto;
-    border-radius: 18px;
-    background: linear-gradient(135deg, #1d4ed8, #2563eb);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    box-shadow: 0 10px 28px rgba(37,99,235,.28);
-}
-.login-title {
-    text-align: center;
-    font-size: 2rem;
-    font-weight: 800;
-    color: #f8fafc;
-    line-height: 1.25;
-    margin-bottom: 7px;
-}
-.login-subtitle {
-    text-align: center;
-    color: #94a3b8;
-    font-size: .92rem;
-    line-height: 1.5;
-}
-.login-card-label {
-    background: linear-gradient(145deg, #111827, #0b1220);
-    border: 1px solid #263244;
-    border-radius: 14px;
-    padding: 13px 16px;
-    color: #e2e8f0;
-    font-size: 1rem;
-    font-weight: 700;
-    margin-bottom: 15px;
-}
-.login-security {
-    text-align: center;
-    color: #64748b;
-    font-size: .74rem;
-    margin-top: 16px;
-}
-.captcha-display {
-    background: #0b1220;
-    border: 1px solid #334155;
-    border-radius: 10px;
-    padding: 12px 14px;
-    text-align: center;
-    color: #dbeafe;
-    font-size: 1.05rem;
-    font-weight: 800;
-    letter-spacing: 1.5px;
-    margin: 8px 0 10px 0;
+@media (max-width: 700px) {
+    .kpi-card { padding: 10px 4px; min-height: 100px; }
+    .kpi-title { font-size: .55rem; }
+    .kpi-value { font-size: 1rem; }
 }
 
 </style>
@@ -211,54 +182,27 @@ if "captcha_question" not in st.session_state:
 
 if not st.session_state.authenticated:
     st.markdown(
-        """
-        <div class="login-wrapper">
-            <div class="login-brand">
-                <div class="login-brand-icon">💳</div>
-                <div class="login-title">Credit Card Banking</div>
-                <div class="login-subtitle">
-                    Secure access to Credit Card Banking Intelligence
-                </div>
-            </div>
-            <div class="login-card-label">🔐 Sign in to your account</div>
-        </div>
-        """,
+        '<div class="login-wrapper">'
+        '<div class="login-icon">💳</div>'
+        '<div class="login-title">Credit Card Banking</div>'
+        '<div class="login-subtitle">Secure Login to Credit Card Banking Intelligence Dashboard</div>'
+        '</div>',
         unsafe_allow_html=True
     )
 
-    _, login_col, _ = st.columns([1, 1.25, 1])
-
+    _, login_col, _ = st.columns([1, 2, 1])
     with login_col:
-        username = st.text_input(
-            "Username",
-            placeholder="Enter your username",
-            key="login_username"
-        )
-
-        password = st.text_input(
-            "Password",
-            type="password",
-            placeholder="Enter your password",
-            key="login_password"
-        )
+        st.markdown("### 🔐 Login")
+        username = st.text_input("👤 Username", placeholder="Enter username", key="login_username")
+        password = st.text_input("🔒 Password", type="password", placeholder="Enter password", key="login_password")
 
         st.markdown(
-            f'<div class="captcha-display">CAPTCHA&nbsp;&nbsp; {st.session_state.captcha_question}</div>',
+            f'<div class="captcha-display">🧩 CAPTCHA&nbsp;&nbsp; {st.session_state.captcha_question}</div>',
             unsafe_allow_html=True
         )
+        captcha = st.text_input("Enter CAPTCHA Answer", placeholder="Enter answer", key="login_captcha")
 
-        captcha = st.text_input(
-            "CAPTCHA Answer",
-            placeholder="Enter the answer",
-            key="login_captcha"
-        )
-
-        if st.button(
-            "Sign In  →",
-            type="primary",
-            use_container_width=True,
-            key="login_button"
-        ):
+        if st.button("🔓 Login to Dashboard", type="primary", use_container_width=True, key="login_button"):
             try:
                 captcha_ok = int(captcha.strip()) == int(st.session_state.captcha_answer)
             except (ValueError, AttributeError):
@@ -269,7 +213,7 @@ if not st.session_state.authenticated:
                 st.session_state.auth_error = ""
                 st.rerun()
             else:
-                st.session_state.auth_error = "Invalid username, password, or CAPTCHA."
+                st.session_state.auth_error = "❌ Invalid username, password, or CAPTCHA."
                 q, ans = generate_captcha()
                 st.session_state.captcha_question = q
                 st.session_state.captcha_answer = ans
@@ -278,10 +222,7 @@ if not st.session_state.authenticated:
         if st.session_state.get("auth_error"):
             st.error(st.session_state.auth_error)
 
-        st.markdown(
-            '<div class="login-security">🔒 Secure banking analytics • Authorized access only</div>',
-            unsafe_allow_html=True
-        )
+        st.caption("Authorized users only • Login required to access dashboard.")
 
     st.stop()
 
@@ -289,8 +230,8 @@ if not st.session_state.authenticated:
 # 🚪 LOGOUT
 # ============================================================
 with st.sidebar:
-    st.markdown("### 🔐 Account")
-    if st.button("🚪 Sign Out", use_container_width=True, key="logout_button"):
+    st.markdown("### 🔐 Session")
+    if st.button("🚪 Logout", use_container_width=True, key="logout_button"):
         st.session_state.authenticated = False
         st.session_state.auth_error = ""
         q, ans = generate_captcha()
@@ -578,7 +519,7 @@ kpis = [
     ("⚠️ Default Rate", f"{default_rate:.2f}%"),
     ("🛡️ High Risk Customers", f"{high_risk_count:,}")
 ]
-cols = st.columns(len(kpis))
+cols = st.columns(len(kpis), gap="small")
 for col, (title, value) in zip(cols, kpis):
     with col:
         st.markdown(
