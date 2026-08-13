@@ -483,12 +483,12 @@ def chart(fig, height=380):
 # HEADER
 # ============================================================
 st.markdown(
-    '<div class="dashboard-title">💳 Credit Card Banking Intelligence</div>',
+    '<div class="dashboard-title">💳FinElite </div>',
     unsafe_allow_html=True
 )
 st.markdown(
     '<div class="dashboard-subtitle">'
-    'Customer spending • financial behaviour • credit health • default & risk analytics'
+    'An AI Powered Credit Card Financial Dashboard'
     '</div>',
     unsafe_allow_html=True
 )
