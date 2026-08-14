@@ -21,8 +21,8 @@ st.set_page_config(
 st.markdown("""
 <style>
 .stApp {
-    background: #0b0f19;
-    color: #f3f4f6;
+    background: #f5f7fb;
+    color: #374151;
 }
 .block-container {
     max-width: 1650px;
@@ -33,11 +33,11 @@ st.markdown("""
     padding-right: 2rem;
 }
 section[data-testid="stSidebar"] {
-    background: #111827 !important;
-    border-right: 1px solid #1f2937;
+    background: #ffffff !important;
+    border-right: 1px solid #374151;
 }
 section[data-testid="stSidebar"] * {
-    color: #f3f4f6 !important;
+    color: #374151 !important;
 }
 .dashboard-title {
     display: block;
@@ -45,7 +45,7 @@ section[data-testid="stSidebar"] * {
     box-sizing: border-box;
     font-size: clamp(1.7rem, 2.8vw, 2.45rem);
     font-weight: 800;
-    color: #60a5fa;
+    color: #2563eb;
     margin: 0 0 10px 0;
     padding: 2px 0 4px 0;
     line-height: 1.35;
@@ -59,14 +59,14 @@ section[data-testid="stSidebar"] * {
     display: block;
     width: 100%;
     box-sizing: border-box;
-    color: #9ca3af;
+    color: #6b7280;
     font-size: 1rem;
     line-height: 1.5;
     margin: 0 0 24px 0;
     padding: 0;
 }
 .section-title {
-    background: linear-gradient(90deg, #172554, #2563eb);
+    background: linear-gradient(90deg, #1e40af, #2563eb);
     padding: 10px 16px;
     border-radius: 10px;
     color: white;
@@ -78,8 +78,8 @@ section[data-testid="stSidebar"] * {
     min-width: 0;
     min-height: 112px;
     box-sizing: border-box;
-    background: #111827;
-    border: 1px solid #1f2937;
+    background: #ffffff;
+    border: 1px solid #374151;
     border-radius: 14px;
     padding: 12px 6px;
     text-align: center;
@@ -92,7 +92,7 @@ section[data-testid="stSidebar"] * {
 }
 .kpi-title {
     width: 100%;
-    color: #9ca3af;
+    color: #6b7280;
     font-size: .62rem;
     line-height: 1.25;
     text-transform: uppercase;
@@ -103,7 +103,7 @@ section[data-testid="stSidebar"] * {
 }
 .kpi-value {
     width: 100%;
-    color: #60a5fa;
+    color: #2563eb;
     font-size: 1.35rem;
     line-height: 1.2;
     font-weight: 750;
@@ -113,33 +113,41 @@ section[data-testid="stSidebar"] * {
     text-overflow: ellipsis;
 }
 .chart-card {
-    background: #111827;
-    border: 1px solid #1f2937;
+    background: #ffffff;
+    border: 1px solid #374151;
     border-radius: 14px;
     padding: 10px 14px 4px 14px;
     margin-bottom: 12px;
 }
 .insight-card {
-    background: #111827;
-    border-left: 4px solid #22c55e;
+    background: #ffffff;
+    border-left: 4px solid #16a34a;
     border-radius: 8px;
     padding: 12px 16px;
     margin: 7px 0;
 }
 .risk-card {
-    background: #111827;
-    border-left: 4px solid #f97316;
+    background: #ffffff;
+    border-left: 4px solid #ea580c;
     border-radius: 8px;
     padding: 12px 16px;
     margin: 7px 0;
 }
 
 /* LOGIN PAGE */
-.login-wrapper { max-width:560px; margin:5vh auto 0 auto; }
-.login-title { text-align:center; font-size:2.2rem; font-weight:800; color:#60a5fa; line-height:1.25; margin-bottom:8px; }
-.login-subtitle { text-align:center; color:#9ca3af; margin-bottom:25px; }
+.login-wrapper {
+    max-width: 560px;
+    margin: 5vh auto 0 auto;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 28px 34px 24px 34px;
+    box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
+}
+.login-title { text-align:center; font-size:2.2rem; font-weight:800; color:#2563eb; line-height:1.25; margin-bottom:8px; }
+.login-subtitle { text-align:center; color:#6b7280; margin-bottom:25px; }
 .login-icon { text-align:center; font-size:3.2rem; margin-bottom:5px; }
-.captcha-display { background:#0f172a; border:1px dashed #3b82f6; border-radius:10px; padding:13px; text-align:center; color:#dbeafe; font-size:1.2rem; font-weight:800; letter-spacing:2px; margin:8px 0 10px 0; }
+.captcha-display { background:#f8fafc; border:1px dashed #3b82f6; border-radius:10px; padding:13px; text-align:center; color:#1e40af; font-size:1.2rem; font-weight:800; letter-spacing:2px; margin:8px 0 10px 0; }
 
 
 @media (max-width: 1100px) {
@@ -150,6 +158,38 @@ section[data-testid="stSidebar"] * {
     .kpi-card { padding: 10px 4px; min-height: 100px; }
     .kpi-title { font-size: .55rem; }
     .kpi-value { font-size: 1rem; }
+}
+
+
+/* Professional Light Banking UI */
+div[data-baseweb="input"] > div,
+div[data-baseweb="select"] > div,
+div[data-baseweb="textarea"] > div {
+    background-color: #ffffff !important;
+    border-color: #d1d5db !important;
+}
+
+input, textarea {
+    color: #1f2937 !important;
+}
+
+.stButton > button {
+    border-radius: 9px !important;
+    border: 1px solid #d1d5db !important;
+}
+
+.stButton > button[kind="primary"] {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border-color: #2563eb !important;
+}
+
+section[data-testid="stSidebar"] {
+    box-shadow: 2px 0 12px rgba(15, 23, 42, 0.05);
+}
+
+.stSlider [data-baseweb="slider"] {
+    color: #2563eb !important;
 }
 
 </style>
@@ -470,10 +510,10 @@ def money(x):
 
 def chart(fig, height=380):
     fig.update_layout(
-        template="plotly_dark",
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#e5e7eb"),
+        template="plotly_white",
+        paper_bgcolor="rgba(255,255,255,0)",
+        plot_bgcolor="rgba(255,255,255,0)",
+        font=dict(color="#374151"),
         margin=dict(l=20, r=20, t=55, b=20),
         height=height
     )
@@ -881,6 +921,6 @@ with ic2:
 # ============================================================
 st.divider()
 st.caption(
-    "💳 Credit Card Banking Intelligence | "
+    "💳 FinElite : Your Credit Game Changer"
     "Python • Pandas • NumPy • Plotly • Streamlit"
 )
