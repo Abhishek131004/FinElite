@@ -27,7 +27,7 @@ st.markdown("""
 .block-container {
     max-width: 1650px;
     width: 100%;
-    padding-top: 5.2rem !important;
+    padding-top: 1.8rem !important;
     padding-bottom: 2rem;
     padding-left: 2rem;
     padding-right: 2rem;
@@ -137,12 +137,63 @@ section[data-testid="stSidebar"] * {
 /* LOGIN PAGE */
 .login-wrapper {
     max-width: 560px;
-    margin: 5vh auto 0 auto;
+    margin: 1.5vh auto 0 auto;
     background: #ffffff;
     border: 1px solid #e5e7eb;
     border-radius: 18px;
-    padding: 28px 34px 24px 34px;
+    padding: 20px 30px 18px 30px;
     box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
+}
+
+.login-title {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #2563eb;
+    line-height: 1.2;
+    margin-bottom: 5px;
+}
+
+.login-subtitle {
+    text-align: center;
+    color: #6b7280;
+    margin-bottom: 12px;
+}
+
+.login-icon {
+    text-align: center;
+    font-size: 2.7rem;
+    margin-bottom: 2px;
+}
+
+.captcha-display {
+    background: #f8fafc;
+    border: 1px dashed #3b82f6;
+    border-radius: 10px;
+    padding: 9px;
+    text-align: center;
+    color: #1e40af;
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    margin: 6px 0 8px 0;
+}
+
+/* Keep the complete login screen visible without manual scrolling */
+body:has(.login-wrapper) {
+    overflow: hidden !important;
+}
+
+div[data-testid="stAppViewContainer"] {
+    min-height: 100vh !important;
+}
+
+div[data-testid="stAppViewContainer"] > section:first-child {
+    min-height: 100vh !important;
+}
+
+.login-wrapper + * {
+    margin-top: 0 !important;
 }
 .login-title { text-align:center; font-size:2.2rem; font-weight:800; color:#2563eb; line-height:1.25; margin-bottom:8px; }
 .login-subtitle { text-align:center; color:#6b7280; margin-bottom:25px; }
@@ -192,8 +243,22 @@ section[data-testid="stSidebar"] {
     color: #2563eb !important;
 }
 
+
+@media (max-height: 800px) {
+    .login-wrapper {
+        margin-top: 0.5vh;
+        padding: 14px 24px 12px 24px;
+    }
+    .login-title { font-size: 1.75rem; }
+    .login-icon { font-size: 2.3rem; }
+    .login-subtitle { margin-bottom: 8px; }
+}
+
 </style>
 """, unsafe_allow_html=True)
+
+# Keep login page positioned at the top on first load
+st.markdown("\n<script>\n(function () {\n    function keepLoginAtTop() {\n        const login = document.querySelector('.login-wrapper');\n        if (login) {\n            window.scrollTo(0, 0);\n            document.documentElement.scrollTop = 0;\n            document.body.scrollTop = 0;\n        }\n    }\n    keepLoginAtTop();\n    setTimeout(keepLoginAtTop, 100);\n    setTimeout(keepLoginAtTop, 400);\n})();\n</script>\n", unsafe_allow_html=True)
 
 
 # ============================================================
