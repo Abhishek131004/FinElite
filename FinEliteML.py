@@ -168,14 +168,6 @@ render_html("""
         font-size: 13px;
         margin-top: 6px;
     }
-    .section-card {
-        background: white;
-        padding: 24px;
-        border-radius: 18px;
-        border: 1px solid #e5eaf1;
-        box-shadow: 0 5px 20px rgba(7, 26, 51, 0.05);
-        margin-bottom: 20px;
-    }
     .risk-low {
         display: inline-block;
         padding: 4px 12px;
@@ -209,7 +201,14 @@ render_html("""
     .stButton > button {
         border-radius: 10px;
         font-weight: 700;
-        min-height: 42px;
+        min-height: 45px;
+        width: 100%;
+        background-color: #0066cc !important;
+        color: white !important;
+        border: none !important;
+    }
+    .stButton > button:hover {
+        background-color: #0052a3 !important;
     }
     button[data-baseweb="tab"] {
         font-weight: 700;
@@ -381,7 +380,10 @@ def build_input_form(raw_df):
                 key=f"input_{col}"
             )
 
-    return user_data
+    st.sidebar.markdown("---")
+    predict_btn = st.sidebar.button("⚡ Predict Credit Limit", key="btn_predict")
+
+    return user_data, predict_btn
 
 def prepare_user_data(user_data, feature_columns):
     user_df = pd.DataFrame([user_data])
@@ -530,7 +532,6 @@ def dataset_explorer(raw_df):
 # MAIN APPLICATION ROUTINE
 # ============================================================
 def main():
-    # Sidebar Logo Header
     render_html("""
         <div style="text-align: center; padding: 10px 0;">
             <div style="font-size: 42px;">💳</div>
@@ -555,7 +556,7 @@ def main():
         st.error(f"Error loading dataset: {e}")
         st.stop()
 
-    user_inputs = build_input_form(raw_df)
+    user_inputs, predict_clicked = build_input_form(raw_df)
 
     try:
         model, X, y, X_train, X_test, y_train, y_test, r2, mae, rmse = train_model(raw_df)
@@ -564,8 +565,13 @@ def main():
         st.stop()
 
     user_df = prepare_user_data(user_inputs, X.columns)
+    
+    # Real-time recalculation on input changes or button click
     predicted_limit = predict_limit(model, user_df)
     risk_label, risk_score, risk_class = calculate_risk(user_inputs)
+
+    if predict_clicked:
+        st.toast("⚡ Prediction updated successfully!", icon="✅")
 
     # Main Header
     render_html("""
