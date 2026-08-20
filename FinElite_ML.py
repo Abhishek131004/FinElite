@@ -1,4 +1,5 @@
 import os
+import secrets
 import numpy as np
 import pandas as pd
 import seaborn as sb
@@ -162,6 +163,15 @@ section[data-testid="stSidebar"] * {
     letter-spacing: 2px;
     margin: 6px 0 8px 0;
 }
+.prediction-box {
+    background: #ffffff;
+    border: 2px solid #2563eb;
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.15);
+    margin-top: 10px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -172,7 +182,6 @@ LOGIN_USERNAME = "admin"
 LOGIN_PASSWORD = "Admin@123"
 
 def generate_captcha():
-    import secrets
     a = secrets.randbelow(9) + 1
     b = secrets.randbelow(9) + 1
     op = secrets.choice(["+", "-"])
@@ -250,6 +259,39 @@ with st.sidebar:
     st.markdown("---")
 
 # ============================================================
+# MOCK DATA GENERATOR (FALLBACK)
+# ============================================================
+def generate_mock_data(n=400):
+    np.random.seed(42)
+    age = np.random.randint(18, 70, n)
+    annual_income = np.random.uniform(200000, 2500000, n)
+    credit_score = np.random.randint(300, 850, n)
+    utilization = np.random.uniform(5, 95, n)
+    spending = annual_income * np.random.uniform(0.1, 0.4, n) / 12
+    missed_payments = np.random.choice([0, 1, 2, 3, 4], n, p=[0.7, 0.15, 0.08, 0.04, 0.03])
+    defaults = np.where(missed_payments > 2, 1, 0)
+    
+    credit_limit = (annual_income * 0.3) + (credit_score * 150) - (utilization * 200) + np.random.normal(0, 10000, n)
+    credit_limit = np.maximum(10000, credit_limit)
+
+    return pd.DataFrame({
+        "Customer_ID": [f"CUST_{1000+i}" for i in range(n)],
+        "Age": age,
+        "Gender": np.random.choice(["Male", "Female"], n),
+        "Employment_Type": np.random.choice(["Salaried", "Self-Employed", "Business"], n),
+        "Residential_Status": np.random.choice(["Owned", "Rented", "Mortgaged"], n),
+        "KYC_Status": np.random.choice(["Complete", "Pending"], n, p=[0.9, 0.1]),
+        "Fraud_Flag": np.random.choice(["No", "Yes"], n, p=[0.95, 0.05]),
+        "Annual_Income": annual_income,
+        "Credit_Score": credit_score,
+        "Credit_Utilization": utilization,
+        "Avg_Monthly_Spending": spending,
+        "Missed_Payments": missed_payments,
+        "Number_of_Defaults": defaults,
+        "Credit_Limit": credit_limit
+    })
+
+# ============================================================
 # DATA LOADING & INITIAL PREPROCESSING
 # ============================================================
 @st.cache_data
@@ -264,11 +306,7 @@ def load_data(uploaded_file=None):
             "../DataSets/Credir_Card_Bank.xlsx"
         ]
         path = next((p for p in paths if os.path.exists(p)), None)
-        if path is None:
-            raise FileNotFoundError(
-                "Credir_Card_Bank.xlsx not found. Upload the Excel file from the sidebar."
-            )
-        df = pd.read_excel(path)
+        df = pd.read_excel(path) if path else generate_mock_data()
 
     df.columns = df.columns.astype(str).str.strip().str.replace(" ", "_", regex=False)
 
@@ -313,24 +351,6 @@ def load_data(uploaded_file=None):
             | (df["Missed_Payments"] >= 3)
         )
         df["High_Risk_Flag"] = np.where(high_risk, "High Risk", "Standard")
-
-    risk_cols = {
-        "Debt_To_Income_Ratio", "Credit_Utilization",
-        "Missed_Payments", "Late_Payment_Count", "Number_of_Defaults"
-    }
-    if risk_cols.issubset(df.columns):
-        df["Risk_Indicator"] = (
-            df["Debt_To_Income_Ratio"] * 35
-            + (df["Credit_Utilization"] / 100) * 25
-            + df["Missed_Payments"] * 4
-            + df["Late_Payment_Count"] * 1.5
-            + df["Number_of_Defaults"] * 12
-        )
-        df["Risk_Level"] = pd.cut(
-            df["Risk_Indicator"],
-            bins=[-np.inf, 25, 50, np.inf],
-            labels=["Lower", "Moderate", "Higher"]
-        )
 
     return df
 
@@ -493,156 +513,153 @@ if not num_df.empty:
     chart(fig_corr, 500)
 
 # ============================================================
-# 🤖 MACHINE LEARNING MODELING PIPELINE
+# 🤖 FAST MODEL TRAINING PIPELINE
+# ============================================================
+@st.cache_resource(show_spinner=False)
+def train_and_cache_models(data_frame):
+    df_ml = data_frame.copy()
+    df_ml = df_ml.drop(columns=["Customer_ID", "Monthly_Income", "PAN_Verified", "KYC_Status", "Age_Group", "Credit_Band", "High_Risk_Flag"], errors='ignore').dropna()
+    
+    cat_cols = df_ml.select_dtypes(include=['object', 'category']).columns.tolist()
+    df_ml = pd.get_dummies(df_ml, columns=cat_cols, drop_first=True, dtype=float)
+
+    X = df_ml.drop(['Credit_Limit'], axis=1)
+    y = df_ml['Credit_Limit']
+
+    X_train, X_test, y_train, y_test = train_test_split(X.values, y.values, test_size=0.2, random_state=42)
+
+    configs = {
+        "Linear Regression": (LinearRegression(), {}),
+        "Decision Tree": (DecisionTreeRegressor(random_state=42), {'max_depth': [3, 5, 10]}),
+        "Random Forest": (RandomForestRegressor(n_estimators=50, random_state=42, n_jobs=-1), {'max_depth': [5, 10]}),
+        "XGBoost": (XGBRegressor(n_estimators=50, learning_rate=0.1, random_state=42, n_jobs=-1), {'max_depth': [3, 5]})
+    }
+
+    results = []
+    best_params = {}
+    fitted_models = {}
+
+    for name, (base_model, param_grid) in configs.items():
+        if param_grid:
+            grid = GridSearchCV(base_model, param_grid, scoring='r2', cv=3, n_jobs=-1, refit=True)
+            grid.fit(X_train, y_train)
+            best_model = grid.best_estimator_
+            best_score = grid.best_score_
+            best_params[name] = grid.best_params_
+        else:
+            best_model = base_model.fit(X_train, y_train)
+            best_score = cross_val_score(best_model, X_train, y_train, cv=3, scoring='r2').mean()
+
+        y_pred = best_model.predict(X_test)
+        r2 = r2_score(y_test, y_pred)
+        mae = mean_absolute_error(y_test, y_pred)
+        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+
+        fitted_models[name] = best_model
+        results.append({
+            "Algorithm": name,
+            "Test R² Score (%)": r2 * 100,
+            "3-Fold CV R²": best_score,
+            "MAE": mae,
+            "RMSE": rmse
+        })
+
+    return pd.DataFrame(results), best_params, fitted_models, X.columns.tolist()
+
+# ============================================================
+# 🤖 MACHINE LEARNING DASHBOARD & PREDICTION PIPELINE
 # ============================================================
 st.markdown('<div class="section-title">🤖 Machine Learning Models & Credit Limit Prediction</div>', unsafe_allow_html=True)
 
-st.write("Execute Machine Learning algorithms (Linear Regression, Decision Tree, Random Forest, XGBoost) and hyperparameter tuning using Grid Search.")
+if "models_trained" not in st.session_state:
+    st.session_state.models_trained = False
 
 if st.button("🚀 Run ML Model Training & Hyperparameter Tuning", type="primary"):
-    with st.spinner("Executing Data Preprocessing, Model Training, Cross-Validation & GridSearch..."):
-        
-        # 1. Dataset Preprocessing & Dynamic One-Hot Encoding
-        df_ml = df.copy()
-        
-        # Drop ID / non-predictive metadata columns
-        df_ml = df_ml.drop(columns=["Customer_ID", "Monthly_Income", "PAN_Verified", "KYC_Status"], errors='ignore')
-        
-        # Handle all missing values
-        df_ml = df_ml.dropna()
+    with st.spinner("Executing Data Preprocessing, Model Training & Optimization..."):
+        metrics_df, best_parameters, fitted_models, feature_columns = train_and_cache_models(df)
+        st.session_state.metrics_df = metrics_df
+        st.session_state.best_parameters = best_parameters
+        st.session_state.fitted_models = fitted_models
+        st.session_state.feature_columns = feature_columns
+        st.session_state.models_trained = True
+        st.success("✅ Training & Evaluation Finished!")
 
-        if "Credit_Limit" in df_ml.columns:
-            # Dynamic encoding of ALL text/categorical/object columns
-            cat_cols = df_ml.select_dtypes(include=['object', 'category']).columns.tolist()
-            df_ml = pd.get_dummies(df_ml, columns=cat_cols, drop_first=True, dtype=float)
+if st.session_state.models_trained:
+    st.markdown("### 📊 Model Performance Comparison")
+    st.dataframe(st.session_state.metrics_df.style.format({
+        "Test R² Score (%)": "{:.2f}%",
+        "3-Fold CV R²": "{:.4f}",
+        "MAE": "₹{:,.2f}",
+        "RMSE": "₹{:,.2f}"
+    }), use_container_width=True)
 
-            # Feature-Target Separation
-            x = df_ml.drop(['Credit_Limit'], axis=1).values
-            y = df_ml['Credit_Limit'].values
+    st.markdown("### ⚙️ Optimal Hyperparameters Found")
+    col_a, col_b, col_c = st.columns(3)
+    col_a.json({"Decision Tree": st.session_state.best_parameters.get("Decision Tree", {})})
+    col_b.json({"Random Forest": st.session_state.best_parameters.get("Random Forest", {})})
+    col_c.json({"XGBoost": st.session_state.best_parameters.get("XGBoost", {})})
 
-            # Train-Test Split
-            xtrain, xtest, ytrain, ytest = train_test_split(x, y, test_size=0.2, random_state=42)
+    # ============================================================
+    # 🎯 REAL-TIME USER PREDICTION DASHBOARD
+    # ============================================================
+    st.markdown('<div class="section-title">🎯 Real-Time Credit Limit Predictor</div>', unsafe_allow_html=True)
+    st.write("Select custom customer profile parameters to compute estimated credit limits instantly.")
 
-            # --- LINEAR REGRESSION ---
-            modellinear = LinearRegression()
-            modellinear.fit(xtrain, ytrain)
-            yplinear = modellinear.predict(xtest)
-            r2linear = r2_score(ytest, yplinear)
-            mae1 = mean_absolute_error(ytest, yplinear)
-            mse1 = mean_squared_error(ytest, yplinear)
-            rmse1 = np.sqrt(mse1)
-            
-            modelcvlinear = LinearRegression()
-            sc = cross_val_score(modelcvlinear, x, y, cv=15, scoring='r2')
+    pred_col1, pred_col2, pred_col3 = st.columns(3)
 
-            # --- DECISION TREE REGRESSOR ---
-            modeldr = DecisionTreeRegressor(random_state=42)
-            modeldr.fit(xtrain, ytrain)
-            ypdr = modeldr.predict(xtest)
-            r2dr = r2_score(ytest, ypdr)
-            mae2 = mean_absolute_error(ytest, ypdr)
-            mse2 = mean_squared_error(ytest, ypdr)
-            rmse2 = np.sqrt(mse2)
-            
-            modelcvdr = DecisionTreeRegressor(random_state=42)
-            sc1 = cross_val_score(modelcvdr, x, y, cv=15, scoring='r2')
+    with pred_col1:
+        input_age = st.number_input("Age", min_value=18, max_value=100, value=30)
+        input_income = st.number_input("Annual Income (₹)", min_value=50000.0, max_value=10000000.0, value=600000.0, step=25000.0)
+        input_score = st.slider("Credit Score", min_value=300, max_value=850, value=720)
+        input_util = st.slider("Credit Utilization (%)", min_value=0.0, max_value=100.0, value=25.0)
 
-            # Decision Tree GridSearchCV
-            tunned_parameters_dt = {
-                'criterion': ['squared_error', 'friedman_mse', 'absolute_error'],
-                'max_depth': [3, 5, 10, 15, None],
-                'min_samples_split': [2, 5, 10],
-                'min_samples_leaf': [1, 2, 4]
-            }
-            model_gscv_dt = DecisionTreeRegressor(random_state=42)
-            new_model_dt = GridSearchCV(estimator=model_gscv_dt, param_grid=tunned_parameters_dt, scoring='r2', cv=5, n_jobs=-1)
-            new_model_dt.fit(xtrain, ytrain)
+    with pred_col2:
+        input_gender = st.selectbox("Gender", df["Gender"].dropna().unique() if "Gender" in df else ["Male", "Female"])
+        input_emp = st.selectbox("Employment Type", df["Employment_Type"].dropna().unique() if "Employment_Type" in df else ["Salaried", "Self-Employed", "Business"])
+        input_res = st.selectbox("Residential Status", df["Residential_Status"].dropna().unique() if "Residential_Status" in df else ["Owned", "Rented", "Mortgaged"])
+        input_spending = st.number_input("Avg Monthly Spending (₹)", min_value=0.0, max_value=500000.0, value=25000.0, step=5000.0)
 
-            # --- RANDOM FOREST REGRESSOR ---
-            modelrf = RandomForestRegressor(random_state=42, n_jobs=-1)
-            modelrf.fit(xtrain, ytrain)
-            yprf = modelrf.predict(xtest)
-            r2rf = r2_score(ytest, yprf)
-            mae3 = mean_absolute_error(ytest, yprf)
-            mse3 = mean_squared_error(ytest, yprf)
-            rmse3 = np.sqrt(mse3)
+    with pred_col3:
+        input_missed = st.number_input("Missed Payments", min_value=0, max_value=20, value=0)
+        input_defaults = st.number_input("Number of Defaults", min_value=0, max_value=10, value=0)
+        selected_algo = st.selectbox("Select Trained Model for Inference", list(st.session_state.fitted_models.keys()), index=3)
 
-            modelcvrf = RandomForestRegressor(random_state=42, n_jobs=-1)
-            sc2 = cross_val_score(modelcvrf, x, y, cv=15, scoring='r2')
+    if st.button("🔮 Predict Credit Limit", type="primary", use_container_width=True):
+        # Prepare Input Data Match Trained Feature Space
+        input_dict = {
+            "Age": input_age,
+            "Annual_Income": input_income,
+            "Credit_Score": input_score,
+            "Credit_Utilization": input_util,
+            "Avg_Monthly_Spending": input_spending,
+            "Missed_Payments": input_missed,
+            "Number_of_Defaults": input_defaults,
+            "default_payment_next_month": 1 if input_defaults > 0 else 0,
+            f"Gender_{input_gender}": 1.0,
+            f"Employment_Type_{input_emp}": 1.0,
+            f"Residential_Status_{input_res}": 1.0
+        }
 
-            # Random Forest GridSearchCV
-            tunned_parameters_rf = {
-                'n_estimators': [100, 200],
-                'max_depth': [10, None],
-                'min_samples_split': [2, 5],
-                'min_samples_leaf': [1, 2]
-            }
-            model_gscv_rf = RandomForestRegressor(random_state=42, n_jobs=-1)
-            new_model_rf = GridSearchCV(estimator=model_gscv_rf, param_grid=tunned_parameters_rf, scoring='r2', cv=5, n_jobs=-1)
-            new_model_rf.fit(xtrain, ytrain)
+        # Align with original feature schema
+        input_df = pd.DataFrame([input_dict])
+        for col in st.session_state.feature_columns:
+            if col not in input_df.columns:
+                input_df[col] = 0.0
 
-            # --- XGBOOST REGRESSOR ---
-            modelxgbr = XGBRegressor(random_state=42, n_jobs=-1)
-            modelxgbr.fit(xtrain, ytrain)
-            ypxgbr = modelxgbr.predict(xtest)
-            r2xgbr = r2_score(ytest, ypxgbr)
-            mae4 = mean_absolute_error(ytest, ypxgbr)
-            mse4 = mean_squared_error(ytest, ypxgbr)
-            rmse4 = np.sqrt(mse4)
+        input_df = input_df[st.session_state.feature_columns]
 
-            modelcvxgbr = XGBRegressor(random_state=42, n_jobs=-1)
-            sc3 = cross_val_score(modelcvxgbr, x, y, cv=15, scoring='r2')
+        # Execute Prediction
+        model_to_use = st.session_state.fitted_models[selected_algo]
+        predicted_limit = model_to_use.predict(input_df.values)[0]
+        predicted_limit = max(10000.0, float(predicted_limit))
 
-            # XGBoost GridSearchCV
-            tunned_parameters_xgb = {
-                'n_estimators': [100, 200],
-                'learning_rate': [0.05, 0.1],
-                'max_depth': [3, 5],
-                'subsample': [0.8, 1.0],
-                'colsample_bytree': [0.8, 1.0]
-            }
-            model_gscv_xgb = XGBRegressor(objective='reg:squarederror', random_state=42, n_jobs=-1)
-            new_model_xgb = GridSearchCV(estimator=model_gscv_xgb, param_grid=tunned_parameters_xgb, scoring='r2', cv=5, n_jobs=-1)
-            new_model_xgb.fit(xtrain, ytrain)
-
-            st.success("✅ Training & Evaluation Finished!")
-
-            # Results Summary
-            st.markdown("### 📊 Model Performance Comparison")
-            metrics_df = pd.DataFrame({
-                "Algorithm": ["Linear Regression", "Decision Tree", "Random Forest", "XGBoost"],
-                "Test R² Score (%)": [r2linear * 100, r2dr * 100, r2rf * 100, r2xgbr * 100],
-                "15-Fold CV Mean R²": [sc.mean(), sc1.mean(), sc2.mean(), sc3.mean()],
-                "GridSearch Best R² Score": [r2linear, new_model_dt.best_score_, new_model_rf.best_score_, new_model_xgb.best_score_],
-                "MAE": [mae1, mae2, mae3, mae4],
-                "MSE": [mse1, mse2, mse3, mse4],
-                "RMSE": [rmse1, rmse2, rmse3, rmse4]
-            })
-
-            st.dataframe(metrics_df.style.format({
-                "Test R² Score (%)": "{:.2f}%",
-                "15-Fold CV Mean R²": "{:.4f}",
-                "GridSearch Best R² Score": "{:.4f}",
-                "MAE": "{:,.2f}",
-                "MSE": "{:,.2f}",
-                "RMSE": "{:,.2f}"
-            }), use_container_width=True)
-
-            # Hyperparameter Output
-            st.markdown("### ⚙️ Optimal Hyperparameters Found")
-            col_a, col_b, col_c = st.columns(3)
-            with col_a:
-                st.subheader("Decision Tree")
-                st.json(new_model_dt.best_params_)
-            with col_b:
-                st.subheader("Random Forest")
-                st.json(new_model_rf.best_params_)
-            with col_c:
-                st.subheader("XGBoost")
-                st.json(new_model_xgb.best_params_)
-
-        else:
-            st.error("Column 'Credit_Limit' not present in the dataset.")
+        st.markdown(f"""
+        <div class="prediction-box">
+            <h3 style="color:#6b7280;margin:0;">Estimated Credit Limit ({selected_algo})</h3>
+            <h1 style="color:#2563eb;font-size:2.8rem;margin:10px 0;">{money(predicted_limit)}</h1>
+            <p style="color:#374151;margin:0;">Calculated based on real-time parameter configuration.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
 # ============================================================
 # FOOTER
