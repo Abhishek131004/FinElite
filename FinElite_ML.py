@@ -1,60 +1,58 @@
 import os
-import secrets
 import numpy as np
 import pandas as pd
 import streamlit as st
 import plotly.express as px
 
-from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
-from sklearn.linear_model import LinearRegression
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
-from xgboost import XGBRegressor
-from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
-
 # ============================================================
-# 1. PAGE CONFIG & CUSTOM CSS
+# PAGE CONFIG
 # ============================================================
 st.set_page_config(
-    page_title="FinElite : Fast ML Dashboard",
+    page_title="FinElite : Your Credit Game Changer",
     page_icon="💳",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
+# ============================================================
+# THEME / CSS
+# ============================================================
 st.markdown("""
 <style>
 .stApp { background: #f5f7fb; color: #374151; }
 .block-container { max-width: 1650px; width: 100%; padding: 1.8rem 2rem 2rem 2rem !important; }
 section[data-testid="stSidebar"] { background: #ffffff !important; border-right: 1px solid #e5e7eb; }
 section[data-testid="stSidebar"] * { color: #374151 !important; }
-.dashboard-title { font-size: 2.2rem; font-weight: 800; color: #2563eb; margin-bottom: 4px; }
-.dashboard-subtitle { color: #6b7280; font-size: 1rem; margin-bottom: 20px; }
-.section-title { background: linear-gradient(90deg, #1e40af, #2563eb); padding: 10px 16px; border-radius: 10px; color: white; font-weight: 700; margin: 20px 0 14px 0; }
-.kpi-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,.05); }
-.kpi-title { color: #6b7280; font-size: 0.75rem; text-transform: uppercase; font-weight: 600; }
-.kpi-value { color: #2563eb; font-size: 1.4rem; font-weight: 800; margin-top: 4px; }
-.login-wrapper { max-width: 480px; margin: 4vh auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-.login-title { text-align: center; font-size: 1.8rem; font-weight: 800; color: #2563eb; }
-.login-subtitle { text-align: center; color: #6b7280; margin-bottom: 16px; font-size: 0.9rem; }
-.captcha-display { background: #eff6ff; border: 1px dashed #3b82f6; border-radius: 8px; padding: 8px; text-align: center; color: #1e40af; font-size: 1rem; font-weight: 800; margin: 10px 0; }
+.dashboard-title { font-size: clamp(1.7rem, 2.8vw, 2.45rem); font-weight: 800; color: #2563eb; margin-bottom: 10px; }
+.dashboard-subtitle { color: #6b7280; font-size: 1rem; margin-bottom: 24px; }
+.section-title { background: linear-gradient(90deg, #1e40af, #2563eb); padding: 10px 16px; border-radius: 10px; color: white; font-weight: 700; margin: 18px 0 12px 0; }
+.kpi-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 14px; padding: 12px 6px; text-align: center; box-shadow: 0 4px 14px rgba(0,0,0,.1); }
+.kpi-title { color: #6b7280; font-size: .65rem; text-transform: uppercase; }
+.kpi-value { color: #2563eb; font-size: 1.35rem; font-weight: 750; margin-top: 5px; }
+.login-wrapper { max-width: 560px; margin: 1.5vh auto 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 18px; padding: 20px 30px; box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08); }
+.login-title { text-align: center; font-size: 2rem; font-weight: 800; color: #2563eb; }
+.login-subtitle { text-align: center; color: #6b7280; margin-bottom: 12px; }
+.captcha-display { background: #f8fafc; border: 1px dashed #3b82f6; border-radius: 10px; padding: 9px; text-align: center; color: #1e40af; font-size: 1.05rem; font-weight: 800; }
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# 2. LOGIN & AUTHENTICATION SYSTEM
+# 🔐 LOGIN SYSTEM
 # ============================================================
-LOGIN_USERNAME = "admin"
-LOGIN_PASSWORD = "Admin@123"
+LOGIN_USERNAME = os.environ.get("FINELITE_USERNAME", "admin")
+LOGIN_PASSWORD = os.environ.get("FINELITE_PASSWORD", "Admin@123")
+
 
 def generate_captcha():
+    import secrets
     a = secrets.randbelow(9) + 1
     b = secrets.randbelow(9) + 1
     op = secrets.choice(["+", "-"])
     if op == "-" and b > a:
         a, b = b, a
-    ans = a + b if op == "+" else a - b
-    return f"{a} {op} {b} = ?", ans
+    answer = a + b if op == "+" else a - b
+    return f"{a} {op} {b} = ?", answer
+
 
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
@@ -65,24 +63,26 @@ if "captcha_question" not in st.session_state:
     st.session_state.captcha_answer = ans
 
 if not st.session_state.authenticated:
-    st.markdown("""
-        <div class="login-wrapper">
-            <div style="text-align:center;font-size:3rem;margin-bottom:8px;">💳</div>
-            <div class="login-title">FinElite Portal</div>
-            <div class="login-subtitle">High-Speed AI Credit Analytics Dashboard</div>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    _, login_col, _ = st.columns([1, 1.8, 1])
+    st.markdown(
+        '<div class="login-wrapper"><div style="text-align:center;font-size:2.7rem;">💳</div>'
+        '<div class="login-title">Welcome to FinElite</div>'
+        '<div class="login-subtitle">Your Credit Game Changer</div></div>',
+        unsafe_allow_html=True
+    )
+    _, login_col, _ = st.columns([1, 2, 1])
     with login_col:
-        username = st.text_input("👤 Username", placeholder="admin", key="login_username")
-        password = st.text_input("🔒 Password", type="password", placeholder="Admin@123", key="login_password")
-        st.markdown(f'<div class="captcha-display">🧩 CAPTCHA: {st.session_state.captcha_question}</div>', unsafe_allow_html=True)
-        captcha_input = st.text_input("Answer CAPTCHA", placeholder="Enter result", key="login_captcha")
+        st.markdown("### 🔐 Login")
+        username = st.text_input("👤 Username", placeholder="Enter username", key="login_username")
+        password = st.text_input("🔒 Password", type="password", placeholder="Enter password", key="login_password")
+        st.markdown(
+            f'<div class="captcha-display">🧩 CAPTCHA&nbsp;&nbsp; {st.session_state.captcha_question}</div>',
+            unsafe_allow_html=True
+        )
+        captcha = st.text_input("Enter CAPTCHA Answer", placeholder="Enter answer", key="login_captcha")
 
-        if st.button("🔓 Sign In", type="primary", use_container_width=True):
+        if st.button("🔓 Login to Dashboard", type="primary", use_container_width=True):
             try:
-                captcha_ok = int(captcha_input.strip()) == int(st.session_state.captcha_answer)
+                captcha_ok = int(captcha.strip()) == int(st.session_state.captcha_answer)
             except (ValueError, AttributeError):
                 captcha_ok = False
 
@@ -91,203 +91,272 @@ if not st.session_state.authenticated:
                 st.session_state.auth_error = ""
                 st.rerun()
             else:
-                st.session_state.auth_error = "❌ Invalid credentials or CAPTCHA."
-                st.session_state.captcha_question, st.session_state.captcha_answer = generate_captcha()
+                st.session_state.auth_error = "❌ Invalid username, password, or CAPTCHA."
+                q, ans = generate_captcha()
+                st.session_state.captcha_question = q
+                st.session_state.captcha_answer = ans
                 st.rerun()
 
         if st.session_state.get("auth_error"):
             st.error(st.session_state.auth_error)
+        st.caption("Authorized users only • Login required to access dashboard.")
     st.stop()
 
+# ============================================================
+# 🚪 LOGOUT
+# ============================================================
 with st.sidebar:
     st.markdown("### 🔐 Session")
     if st.button("🚪 Logout", use_container_width=True):
         st.session_state.authenticated = False
-        st.session_state.captcha_question, st.session_state.captcha_answer = generate_captcha()
+        st.session_state.auth_error = ""
+        q, ans = generate_captcha()
+        st.session_state.captcha_question = q
+        st.session_state.captcha_answer = ans
         st.rerun()
     st.markdown("---")
 
 # ============================================================
-# 3. MOCK DATA GENERATOR & LOADERS
+# DATA LOADING & INITIAL PREPROCESSING
 # ============================================================
-def generate_mock_data(n=400):
-    np.random.seed(42)
-    age = np.random.randint(18, 70, n)
-    annual_income = np.random.uniform(200000, 2500000, n)
-    credit_score = np.random.randint(300, 850, n)
-    utilization = np.random.uniform(5, 95, n)
-    spending = annual_income * np.random.uniform(0.1, 0.4, n) / 12
-    missed_payments = np.random.choice([0, 1, 2, 3, 4], n, p=[0.7, 0.15, 0.08, 0.04, 0.03])
-    defaults = np.where(missed_payments > 2, 1, 0)
-    
-    credit_limit = (annual_income * 0.3) + (credit_score * 150) - (utilization * 200) + np.random.normal(0, 10000, n)
-    credit_limit = np.maximum(10000, credit_limit)
-
-    return pd.DataFrame({
-        "Customer_ID": [f"CUST_{1000+i}" for i in range(n)],
-        "Age": age,
-        "Gender": np.random.choice(["Male", "Female"], n),
-        "Employment_Type": np.random.choice(["Salaried", "Self-Employed", "Business"], n),
-        "Residential_Status": np.random.choice(["Owned", "Rented", "Mortgaged"], n),
-        "KYC_Status": np.random.choice(["Complete", "Pending"], n, p=[0.9, 0.1]),
-        "Fraud_Flag": np.random.choice(["No", "Yes"], n, p=[0.95, 0.05]),
-        "Annual_Income": annual_income,
-        "Credit_Score": credit_score,
-        "Credit_Utilization": utilization,
-        "Avg_Monthly_Spending": spending,
-        "Missed_Payments": missed_payments,
-        "Number_of_Defaults": defaults,
-        "Credit_Limit": credit_limit
-    })
-
-@st.cache_data
+@st.cache_data(show_spinner="📥 Loading and preparing data...")
 def load_data(uploaded_file=None):
     if uploaded_file is not None:
         df = pd.read_excel(uploaded_file)
     else:
-        paths = ["Credir_Card_Bank.xlsx", "Credir_Card_Bank(4).xlsx"]
+        paths = ["Credir_Card_Bank.xlsx", "Credir_Card_Bank(4).xlsx", "../Datasets/Credir_Card_Bank.xlsx"]
         path = next((p for p in paths if os.path.exists(p)), None)
-        df = pd.read_excel(path) if path else generate_mock_data()
+        if path is None:
+            raise FileNotFoundError("Credir_Card_Bank.xlsx not found. Upload the Excel file from the sidebar.")
+        df = pd.read_excel(path)
 
     df.columns = df.columns.astype(str).str.strip().str.replace(" ", "_", regex=False)
-    
+
+    numeric_cols = [
+        "Age", "Monthly_Income", "Annual_Income", "Credit_Score", "Years_With_Bank",
+        "Existing_Credit_Cards", "Existing_Credit_Limit", "Loan_Count", "EMI_Per_Month",
+        "Debt_To_Income_Ratio", "Savings_Balance", "Investment_Value", "Avg_Monthly_Transactions",
+        "Avg_Monthly_Spending", "Credit_Utilization", "Credit_History_Years", "Missed_Payments",
+        "Late_Payment_Count", "Number_of_Defaults", "Credit_Limit"
+    ]
+    for c in numeric_cols:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+
     if "Age" in df.columns:
-        df["Age_Group"] = pd.cut(df["Age"], bins=[18, 25, 35, 50, 65, 100], labels=["18-25", "26-35", "36-50", "51-65", "65+"], include_lowest=True)
+        df["Age_Group"] = pd.cut(
+            df["Age"], bins=[18, 25, 35, 50, 65, 100],
+            labels=["18-25", "26-35", "36-50", "51-65", "65+"], include_lowest=True
+        )
+
     if "Credit_Score" in df.columns:
-        df["Credit_Band"] = df["Credit_Score"].apply(lambda x: "Poor" if x<580 else ("Fair" if x<670 else ("Good" if x<740 else ("Very Good" if x<800 else "Excellent"))))
+        df["Credit_Band"] = df["Credit_Score"].apply(
+            lambda x: "Poor" if pd.notna(x) and x < 580 else (
+                "Fair" if pd.notna(x) and x < 670 else (
+                    "Good" if pd.notna(x) and x < 740 else (
+                        "Very Good" if pd.notna(x) and x < 800 else (
+                            "Excellent" if pd.notna(x) else np.nan
+                        )
+                    )
+                )
+            )
+        )
+
     if "Number_of_Defaults" in df.columns:
         df["default_payment_next_month"] = (df["Number_of_Defaults"] > 0).astype(int)
 
+    if {"Credit_Score", "Credit_Utilization", "Missed_Payments"}.issubset(df.columns):
+        high_risk = (df["Credit_Score"] < 600) | (df["Credit_Utilization"] > 75) | (df["Missed_Payments"] >= 3)
+        df["High_Risk_Flag"] = np.where(high_risk, "High Risk", "Standard")
+
     return df
 
+
+def safe_metric(df, col, fmt, prefix=""):
+    """Format a KPI value without crashing on missing columns or empty/NaN data."""
+    if col not in df.columns or df[col].dropna().empty:
+        return "N/A"
+    val = df[col].mean()
+    if pd.isna(val):
+        return "N/A"
+    return f"{prefix}{val:{fmt}}"
+
+
 # ============================================================
-# 4. ULTRA-FAST SINGLE-PASS ML PIPELINE
+# CACHED ML PIPELINE FUNCTION (heavy libs imported lazily so the
+# app itself starts fast; sklearn/xgboost only load the first
+# time the pipeline actually runs, and the result is cached).
 # ============================================================
-@st.cache_resource(show_spinner=False)
-def train_ml_models_fast(df_data):
-    df_ml = df_data.copy().drop(columns=["Customer_ID", "PAN_Verified"], errors='ignore').dropna()
-    
-    cat_cols = df_ml.select_dtypes(include=['object', 'category']).columns.tolist()
+@st.cache_data(show_spinner=False)
+def run_ml_pipeline(df_input):
+    from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
+    from sklearn.linear_model import LinearRegression
+    from sklearn.tree import DecisionTreeRegressor
+    from sklearn.ensemble import RandomForestRegressor
+    from xgboost import XGBRegressor
+    from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+
+    df_ml = df_input.copy().drop(
+        columns=["Customer_ID", "Monthly_Income", "PAN_Verified", "KYC_Status"], errors="ignore"
+    ).dropna()
+
+    if "Credit_Limit" not in df_ml.columns:
+        raise ValueError("The dataset has no 'Credit_Limit' column, which the model needs as its target.")
+    if len(df_ml) < 20:
+        raise ValueError(
+            f"Only {len(df_ml)} complete rows remain after dropping missing values — "
+            "that's not enough to train a reliable model. Please upload a fuller dataset."
+        )
+
+    cat_cols = df_ml.select_dtypes(include=["object", "category"]).columns.tolist()
     df_ml = pd.get_dummies(df_ml, columns=cat_cols, drop_first=True, dtype=float)
 
-    X = df_ml.drop(['Credit_Limit'], axis=1).values
-    y = df_ml['Credit_Limit'].values
+    x = df_ml.drop(["Credit_Limit"], axis=1).values
+    y = df_ml["Credit_Limit"].values
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    xtrain, xtest, ytrain, ytest = train_test_split(x, y, test_size=0.2, random_state=42)
 
-    # Fast models configuration with optimized tree bounds
-    configs = {
-        "Linear Regression": (LinearRegression(), {}),
-        "Decision Tree": (DecisionTreeRegressor(random_state=42), {'max_depth': [3, 6]}),
-        "Random Forest": (RandomForestRegressor(n_estimators=30, random_state=42, n_jobs=-1), {'max_depth': [4, 8]}),
-        "XGBoost": (XGBRegressor(n_estimators=30, learning_rate=0.1, random_state=42, n_jobs=-1, eval_metric='rmse'), {'max_depth': [3, 5]})
+    # NOTE: inner estimators use n_jobs=1 while GridSearchCV uses n_jobs=-1.
+    # Nesting n_jobs=-1 inside n_jobs=-1 causes CPU oversubscription and,
+    # in some hosted/cloud environments, hangs or worker-process errors.
+
+    # 1. Linear Regression (no hyperparameters to tune)
+    model_linear = LinearRegression().fit(xtrain, ytrain)
+    yp_linear = model_linear.predict(xtest)
+    lr_cv = cross_val_score(LinearRegression(), x, y, cv=3, scoring="r2").mean()
+
+    # 2. Decision Tree
+    dt_grid = GridSearchCV(
+        DecisionTreeRegressor(random_state=42),
+        {"max_depth": [5, 10, None], "min_samples_split": [2, 5]},
+        scoring="r2", cv=3, n_jobs=-1
+    )
+    dt_grid.fit(xtrain, ytrain)
+    yp_dt = dt_grid.best_estimator_.predict(xtest)
+    dt_cv = dt_grid.cv_results_["mean_test_score"][dt_grid.best_index_]
+
+    # 3. Random Forest
+    rf_grid = GridSearchCV(
+        RandomForestRegressor(random_state=42, n_jobs=1),
+        {"n_estimators": [50, 100], "max_depth": [10, None]},
+        scoring="r2", cv=3, n_jobs=-1
+    )
+    rf_grid.fit(xtrain, ytrain)
+    yp_rf = rf_grid.best_estimator_.predict(xtest)
+    rf_cv = rf_grid.cv_results_["mean_test_score"][rf_grid.best_index_]
+
+    # 4. XGBoost
+    xgb_grid = GridSearchCV(
+        XGBRegressor(objective="reg:squarederror", random_state=42, n_jobs=1),
+        {"n_estimators": [50, 100], "learning_rate": [0.05, 0.1]},
+        scoring="r2", cv=3, n_jobs=-1
+    )
+    xgb_grid.fit(xtrain, ytrain)
+    yp_xgb = xgb_grid.best_estimator_.predict(xtest)
+    xgb_cv = xgb_grid.cv_results_["mean_test_score"][xgb_grid.best_index_]
+
+    metrics = pd.DataFrame({
+        "Algorithm": ["Linear Regression", "Decision Tree", "Random Forest", "XGBoost"],
+        "Test R² Score (%)": [
+            r2_score(ytest, yp_linear) * 100,
+            r2_score(ytest, yp_dt) * 100,
+            r2_score(ytest, yp_rf) * 100,
+            r2_score(ytest, yp_xgb) * 100,
+        ],
+        "3-Fold CV Mean R²": [lr_cv, dt_cv, rf_cv, xgb_cv],
+        "GridSearch Best R² Score": [
+            r2_score(ytest, yp_linear), dt_grid.best_score_, rf_grid.best_score_, xgb_grid.best_score_
+        ],
+        "MAE": [
+            mean_absolute_error(ytest, yp_linear), mean_absolute_error(ytest, yp_dt),
+            mean_absolute_error(ytest, yp_rf), mean_absolute_error(ytest, yp_xgb)
+        ],
+        "RMSE": [
+            np.sqrt(mean_squared_error(ytest, yp_linear)), np.sqrt(mean_squared_error(ytest, yp_dt)),
+            np.sqrt(mean_squared_error(ytest, yp_rf)), np.sqrt(mean_squared_error(ytest, yp_xgb))
+        ]
+    })
+
+    best_params = {
+        "Decision Tree": dt_grid.best_params_,
+        "Random Forest": rf_grid.best_params_,
+        "XGBoost": xgb_grid.best_params_
     }
 
-    results = []
-    best_params = {}
+    return metrics, best_params
 
-    for name, (base_model, param_grid) in configs.items():
-        if param_grid:
-            grid = GridSearchCV(base_model, param_grid, scoring='r2', cv=3, n_jobs=-1, refit=True)
-            grid.fit(X_train, y_train)
-            model = grid.best_estimator_
-            cv_score = grid.best_score_
-            best_params[name] = grid.best_params_
-        else:
-            model = base_model.fit(X_train, y_train)
-            cv_score = cross_val_score(model, X_train, y_train, cv=3, scoring='r2').mean()
-
-        y_pred = model.predict(X_test)
-        r2 = r2_score(y_test, y_pred)
-        mae = mean_absolute_error(y_test, y_pred)
-        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-
-        results.append({
-            "Algorithm": name,
-            "Test R² Score (%)": r2 * 100,
-            "3-Fold CV R²": cv_score,
-            "MAE": mae,
-            "RMSE": rmse
-        })
-
-    return pd.DataFrame(results), best_params
 
 # ============================================================
-# 5. SIDEBAR FILTERS & DATA LOAD
+# APP LAYOUT & FILTERS
 # ============================================================
-st.sidebar.title("🎛️ Control Panel")
-uploaded_file = st.sidebar.file_uploader("📁 Upload Excel Dataset", type=["xlsx", "xls"])
+st.sidebar.title("🎛️ Control Center")
+uploaded_file = st.sidebar.file_uploader("📁 Upload Credit Card Excel", type=["xlsx", "xls"])
 
-df_raw = load_data(uploaded_file)
-df = df_raw.copy()
+try:
+    df = load_data(uploaded_file)
+except Exception as e:
+    st.error(f"❌ {e}")
+    st.stop()
 
-st.sidebar.subheader("🎯 Customer Filters")
-if "Gender" in df.columns:
-    genders = st.sidebar.multiselect("Gender", df["Gender"].dropna().unique(), default=df["Gender"].dropna().unique())
-    df = df[df["Gender"].isin(genders)]
+if df.empty:
+    st.warning("⚠️ The loaded file has no rows. Please upload a valid dataset.")
+    st.stop()
 
-if "Employment_Type" in df.columns:
-    emp = st.sidebar.multiselect("Employment Type", df["Employment_Type"].dropna().unique(), default=df["Employment_Type"].dropna().unique())
-    df = df[df["Employment_Type"].isin(emp)]
+# Dashboard Header
+st.markdown('<div class="dashboard-title">💳 FinElite : Your Credit Game Changer</div>', unsafe_allow_html=True)
+st.markdown('<div class="dashboard-subtitle">An AI Powered Credit Card Financial Dashboard & Fast ML Pipeline</div>', unsafe_allow_html=True)
 
-if "Age" in df.columns:
-    min_a, max_a = int(df_raw["Age"].min()), int(df_raw["Age"].max())
-    age_range = st.sidebar.slider("Age Range", min_a, max_a, (min_a, max_a))
-    df = df[df["Age"].between(age_range[0], age_range[1])]
+# KPIs
+kpis = [
+    ("👥 Total Customers", f"{len(df):,}"),
+    ("💰 Avg Spending", safe_metric(df, "Avg_Monthly_Spending", ",.0f", "₹")),
+    ("📈 Avg Income", safe_metric(df, "Annual_Income", ",.0f", "₹")),
+    ("⭐ Avg Credit Score", safe_metric(df, "Credit_Score", ".0f")),
+]
+cols = st.columns(len(kpis))
+for col, (title, val) in zip(cols, kpis):
+    col.markdown(
+        f'<div class="kpi-card"><div class="kpi-title">{title}</div><div class="kpi-value">{val}</div></div>',
+        unsafe_allow_html=True
+    )
 
-# ============================================================
-# 6. MAIN DASHBOARD CONTENT
-# ============================================================
-st.markdown('<div class="dashboard-title">💳 FinElite Analytics Dashboard</div>', unsafe_allow_html=True)
-st.markdown('<div class="dashboard-subtitle">Real-time Credit Data Analytics & High-Speed ML Engine</div>', unsafe_allow_html=True)
-
-# KPI Section
-c1, c2, c3, c4 = st.columns(4)
-c1.markdown(f'<div class="kpi-card"><div class="kpi-title">Total Customers</div><div class="kpi-value">{len(df):,}</div></div>', unsafe_allow_html=True)
-c2.markdown(f'<div class="kpi-card"><div class="kpi-title">Avg Annual Income</div><div class="kpi-value">₹{df["Annual_Income"].mean():,.0f}</div></div>', unsafe_allow_html=True)
-c3.markdown(f'<div class="kpi-card"><div class="kpi-title">Avg Credit Score</div><div class="kpi-value">{df["Credit_Score"].mean():.0f}</div></div>', unsafe_allow_html=True)
-c4.markdown(f'<div class="kpi-card"><div class="kpi-title">Avg Monthly Spend</div><div class="kpi-value">₹{df["Avg_Monthly_Spending"].mean():,.0f}</div></div>', unsafe_allow_html=True)
-
-# EDA Visualizations
+# EDA
 st.markdown('<div class="section-title">📊 Exploratory Data Analysis</div>', unsafe_allow_html=True)
-col_a, col_b = st.columns(2)
+c1, c2 = st.columns(2)
+with c1:
+    if "Avg_Monthly_Spending" in df.columns and df["Avg_Monthly_Spending"].notna().any():
+        st.plotly_chart(px.histogram(df, x="Avg_Monthly_Spending", title="💰 Monthly Spending Distribution"), use_container_width=True)
+    else:
+        st.info("No 'Avg_Monthly_Spending' data available to plot.")
+with c2:
+    if {"Annual_Income", "Avg_Monthly_Spending"}.issubset(df.columns) and df[["Annual_Income", "Avg_Monthly_Spending"]].notna().any().all():
+        st.plotly_chart(px.scatter(df, x="Annual_Income", y="Avg_Monthly_Spending", title="💵 Income vs Spending"), use_container_width=True)
+    else:
+        st.info("No 'Annual_Income' / 'Avg_Monthly_Spending' data available to plot.")
 
-with col_a:
-    chart_dim = st.selectbox("Compare Spending By", ["Age_Group", "Employment_Type", "Residential_Status", "Credit_Band"], index=0)
-    if chart_dim in df.columns:
-        fig_bar = px.histogram(df, x=chart_dim, y="Avg_Monthly_Spending", histfunc="avg", title=f"Average Monthly Spending by {chart_dim.replace('_', ' ')}")
-        fig_bar.update_layout(template="plotly_white", margin=dict(l=20, r=20, t=40, b=20))
-        st.plotly_chart(fig_bar, use_container_width=True)
+# ML Pipeline
+st.markdown('<div class="section-title">🤖 Optimized Machine Learning Pipeline</div>', unsafe_allow_html=True)
 
-with col_b:
-    fig_scatter = px.scatter(df, x="Annual_Income", y="Credit_Limit", color="Credit_Band" if "Credit_Band" in df else None, title="Income vs Credit Limit Allocation")
-    fig_scatter.update_layout(template="plotly_white", margin=dict(l=20, r=20, t=40, b=20))
-    st.plotly_chart(fig_scatter, use_container_width=True)
+if st.button("🚀 Run ML Model Training (Fast Mode)", type="primary"):
+    with st.spinner("Training models with parallel processing and caching..."):
+        try:
+            metrics_df, best_params = run_ml_pipeline(df)
+        except Exception as e:
+            st.error(f"❌ Model training failed: {e}")
+        else:
+            st.success("✅ Execution Complete!")
 
-# ============================================================
-# 7. FAST MACHINE LEARNING ENGINE
-# ============================================================
-st.markdown('<div class="section-title">🤖 Machine Learning Engine (Lightning Speed)</div>', unsafe_allow_html=True)
+            st.markdown("### 📊 Model Performance Comparison")
+            st.dataframe(metrics_df.style.format({
+                "Test R² Score (%)": "{:.2f}%",
+                "3-Fold CV Mean R²": "{:.4f}",
+                "GridSearch Best R² Score": "{:.4f}",
+                "MAE": "{:,.2f}",
+                "RMSE": "{:,.2f}"
+            }), use_container_width=True)
 
-if st.button("🚀 Train & Evaluate ML Models", type="primary"):
-    with st.spinner("Executing streamlined single-pass ML pipeline..."):
-        metrics_df, best_parameters = train_ml_models_fast(df)
-        
-        st.success("✅ Models Trained in Seconds!")
-
-        st.markdown("### 📊 Model Performance Metrics")
-        st.dataframe(metrics_df.style.format({
-            "Test R² Score (%)": "{:.2f}%",
-            "3-Fold CV R²": "{:.4f}",
-            "MAE": "₹{:,.2f}",
-            "RMSE": "₹{:,.2f}"
-        }), use_container_width=True)
-
-        st.markdown("### ⚙️ Optimal Hyperparameters")
-        p1, p2, p3 = st.columns(3)
-        p1.json({"Decision Tree": best_parameters.get("Decision Tree", {})})
-        p2.json({"Random Forest": best_parameters.get("Random Forest", {})})
-        p3.json({"XGBoost": best_parameters.get("XGBoost", {})})
-
-st.divider()
-st.caption("💳 FinElite Dashboard • Streamlit • Scikit-Learn • XGBoost • Plotly")
+            st.markdown("### ⚙️ Optimal Hyperparameters Found")
+            col_a, col_b, col_c = st.columns(3)
+            col_a.json(best_params["Decision Tree"])
+            col_b.json(best_params["Random Forest"])
+            col_c.json(best_params["XGBoost"])
