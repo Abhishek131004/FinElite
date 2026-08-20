@@ -121,27 +121,6 @@ section[data-testid="stSidebar"] * {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.chart-card {
-    background: #ffffff;
-    border: 1px solid #374151;
-    border-radius: 14px;
-    padding: 10px 14px 4px 14px;
-    margin-bottom: 12px;
-}
-.insight-card {
-    background: #ffffff;
-    border-left: 4px solid #16a34a;
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin: 7px 0;
-}
-.risk-card {
-    background: #ffffff;
-    border-left: 4px solid #ea580c;
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin: 7px 0;
-}
 
 /* LOGIN PAGE */
 .login-wrapper {
@@ -153,7 +132,6 @@ section[data-testid="stSidebar"] * {
     padding: 20px 30px 18px 30px;
     box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
 }
-
 .login-title {
     text-align: center;
     font-size: 2rem;
@@ -162,19 +140,16 @@ section[data-testid="stSidebar"] * {
     line-height: 1.2;
     margin-bottom: 5px;
 }
-
 .login-subtitle {
     text-align: center;
     color: #6b7280;
     margin-bottom: 12px;
 }
-
 .login-icon {
     text-align: center;
     font-size: 2.7rem;
     margin-bottom: 2px;
 }
-
 .captcha-display {
     background: #f8fafc;
     border: 1px dashed #3b82f6;
@@ -187,77 +162,8 @@ section[data-testid="stSidebar"] * {
     letter-spacing: 2px;
     margin: 6px 0 8px 0;
 }
-
-body:has(.login-wrapper) {
-    overflow: hidden !important;
-}
-
-div[data-testid="stAppViewContainer"] {
-    min-height: 100vh !important;
-}
-
-div[data-testid="stAppViewContainer"] > section:first-child {
-    min-height: 100vh !important;
-}
-
-.login-wrapper + * {
-    margin-top: 0 !important;
-}
-
-@media (max-width: 1100px) {
-    .kpi-title { font-size: .58rem; }
-    .kpi-value { font-size: 1.15rem; }
-}
-@media (max-width: 700px) {
-    .kpi-card { padding: 10px 4px; min-height: 100px; }
-    .kpi-title { font-size: .55rem; }
-    .kpi-value { font-size: 1rem; }
-}
-
-div[data-baseweb="input"] > div,
-div[data-baseweb="select"] > div,
-div[data-baseweb="textarea"] > div {
-    background-color: #ffffff !important;
-    border-color: #d1d5db !important;
-}
-
-input, textarea {
-    color: #1f2937 !important;
-}
-
-.stButton > button {
-    border-radius: 9px !important;
-    border: 1px solid #d1d5db !important;
-}
-
-.stButton > button[kind="primary"] {
-    background: #2563eb !important;
-    color: #ffffff !important;
-    border-color: #2563eb !important;
-}
-
-section[data-testid="stSidebar"] {
-    box-shadow: 2px 0 12px rgba(15, 23, 42, 0.05);
-}
-
-.stSlider [data-baseweb="slider"] {
-    color: #2563eb !important;
-}
-
-@media (max-height: 800px) {
-    .login-wrapper {
-        margin-top: 0.5vh;
-        padding: 14px 24px 12px 24px;
-    }
-    .login-title { font-size: 1.75rem; }
-    .login-icon { font-size: 2.3rem; }
-    .login-subtitle { margin-bottom: 8px; }
-}
 </style>
 """, unsafe_allow_html=True)
-
-# Keep login page positioned at top on load
-st.markdown("\n<script>\n(function () {\n    function keepLoginAtTop() {\n        const login = document.querySelector('.login-wrapper');\n        if (login) {\n            window.scrollTo(0, 0);\n            document.documentElement.scrollTop = 0;\n            document.body.scrollTop = 0;\n        }\n    }\n    keepLoginAtTop();\n    setTimeout(keepLoginAtTop, 100);\n    setTimeout(keepLoginAtTop, 400);\n})();\n</script>\n", unsafe_allow_html=True)
 
 # ============================================================
 # 🔐 LOGIN SYSTEM
@@ -596,17 +502,20 @@ st.write("Execute Machine Learning algorithms (Linear Regression, Decision Tree,
 if st.button("🚀 Run ML Model Training & Hyperparameter Tuning", type="primary"):
     with st.spinner("Executing Data Preprocessing, Model Training, Cross-Validation & GridSearch..."):
         
-        # 1. Dataset Preprocessing
+        # 1. Dataset Preprocessing & Dynamic One-Hot Encoding
         df_ml = df.copy()
+        
+        # Drop ID / non-predictive metadata columns
         df_ml = df_ml.drop(columns=["Customer_ID", "Monthly_Income", "PAN_Verified", "KYC_Status"], errors='ignore')
         
-        cat_columns = ['Gender', 'Employment_Type', 'Occupation', 'Residential_Status', 'Fraud_Flag']
-        existing_cat = [c for c in cat_columns if c in df_ml.columns]
-        
-        df_ml = pd.get_dummies(df_ml, columns=existing_cat, drop_first=True)
+        # Handle all missing values
         df_ml = df_ml.dropna()
 
         if "Credit_Limit" in df_ml.columns:
+            # Dynamic encoding of ALL text/categorical/object columns
+            cat_cols = df_ml.select_dtypes(include=['object', 'category']).columns.tolist()
+            df_ml = pd.get_dummies(df_ml, columns=cat_cols, drop_first=True, dtype=float)
+
             # Feature-Target Separation
             x = df_ml.drop(['Credit_Limit'], axis=1).values
             y = df_ml['Credit_Limit'].values
@@ -641,7 +550,7 @@ if st.button("🚀 Run ML Model Training & Hyperparameter Tuning", type="primary
             # Decision Tree GridSearchCV
             tunned_parameters_dt = {
                 'criterion': ['squared_error', 'friedman_mse', 'absolute_error'],
-                'max_depth': [3, 5, 10, 15, 20, None],
+                'max_depth': [3, 5, 10, 15, None],
                 'min_samples_split': [2, 5, 10],
                 'min_samples_leaf': [1, 2, 4]
             }
@@ -704,7 +613,7 @@ if st.button("🚀 Run ML Model Training & Hyperparameter Tuning", type="primary
                 "Algorithm": ["Linear Regression", "Decision Tree", "Random Forest", "XGBoost"],
                 "Test R² Score (%)": [r2linear * 100, r2dr * 100, r2rf * 100, r2xgbr * 100],
                 "15-Fold CV Mean R²": [sc.mean(), sc1.mean(), sc2.mean(), sc3.mean()],
-                "GridSearch Best R² Score": ["N/A", new_model_dt.best_score_, new_model_rf.best_score_, new_model_xgb.best_score_],
+                "GridSearch Best R² Score": [r2linear, new_model_dt.best_score_, new_model_rf.best_score_, new_model_xgb.best_score_],
                 "MAE": [mae1, mae2, mae3, mae4],
                 "MSE": [mse1, mse2, mse3, mse4],
                 "RMSE": [rmse1, rmse2, rmse3, rmse4]
@@ -713,6 +622,7 @@ if st.button("🚀 Run ML Model Training & Hyperparameter Tuning", type="primary
             st.dataframe(metrics_df.style.format({
                 "Test R² Score (%)": "{:.2f}%",
                 "15-Fold CV Mean R²": "{:.4f}",
+                "GridSearch Best R² Score": "{:.4f}",
                 "MAE": "{:,.2f}",
                 "MSE": "{:,.2f}",
                 "RMSE": "{:,.2f}"
