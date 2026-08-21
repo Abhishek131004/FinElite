@@ -24,159 +24,159 @@ st.set_page_config(
 )
 
 # ============================================================
-# THEME / CSS
+# THEME / CSS (DARK MODE & LIGHT MODE ADAPTIVE)
 # ============================================================
 st.markdown("""
 <style>
-.stApp {
-    background: #f5f7fb;
-    color: #374151;
-}
+/* Responsive padding to prevent top title clipping */
 .block-container {
     max-width: 1650px;
     width: 100%;
-    padding-top: 1.8rem !important;
+    padding-top: 3.5rem !important;
     padding-bottom: 2rem;
     padding-left: 2rem;
     padding-right: 2rem;
 }
-section[data-testid="stSidebar"] {
-    background: #ffffff !important;
-    border-right: 1px solid #374151;
-}
-section[data-testid="stSidebar"] * {
-    color: #374151 !important;
-}
+
+/* Dynamic Main Dashboard Title */
 .dashboard-title {
     display: block;
     width: 100%;
     box-sizing: border-box;
-    font-size: clamp(1.7rem, 2.8vw, 2.45rem);
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
     font-weight: 800;
-    color: #2563eb;
-    margin: 0 0 10px 0;
-    padding: 2px 0 4px 0;
-    line-height: 1.35;
-    white-space: normal;
-    overflow: visible;
-    word-break: normal;
-    overflow-wrap: normal;
+    color: #3b82f6;
+    margin: 10px 0 6px 0;
+    padding: 0;
+    line-height: 1.3;
     text-align: left;
 }
+
 .dashboard-subtitle {
     display: block;
     width: 100%;
     box-sizing: border-box;
-    color: #6b7280;
-    font-size: 1rem;
+    opacity: 0.8;
+    font-size: 1.05rem;
     line-height: 1.5;
-    margin: 0 0 24px 0;
+    margin: 0 0 20px 0;
     padding: 0;
 }
+
 .section-title {
     background: linear-gradient(90deg, #1e40af, #2563eb);
     padding: 10px 16px;
     border-radius: 10px;
-    color: white;
+    color: #ffffff !important;
     font-weight: 700;
-    margin: 18px 0 12px 0;
+    margin: 22px 0 14px 0;
 }
+
+/* Dynamic KPI Cards */
 .kpi-card {
     width: 100%;
     min-width: 0;
     min-height: 112px;
     box-sizing: border-box;
-    background: #ffffff;
-    border: 1px solid #374151;
+    background: var(--background-color, #ffffff);
+    border: 1px solid rgba(128, 128, 128, 0.25);
     border-radius: 14px;
-    padding: 12px 6px;
+    padding: 12px 8px;
     text-align: center;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    box-shadow: 0 4px 14px rgba(0,0,0,.30);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
+
 .kpi-title {
     width: 100%;
-    color: #6b7280;
-    font-size: .62rem;
+    opacity: 0.75;
+    font-size: 0.72rem;
     line-height: 1.25;
     text-transform: uppercase;
-    letter-spacing: .25px;
+    letter-spacing: 0.3px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-weight: 600;
 }
+
 .kpi-value {
     width: 100%;
-    color: #2563eb;
-    font-size: 1.35rem;
+    color: #3b82f6;
+    font-size: 1.4rem;
     line-height: 1.2;
-    font-weight: 750;
-    margin-top: 7px;
+    font-weight: 800;
+    margin-top: 6px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-/* LOGIN PAGE */
+/* LOGIN WRAPPER */
 .login-wrapper {
     max-width: 560px;
     margin: 1.5vh auto 0 auto;
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
+    background: var(--background-color, #ffffff);
+    border: 1px solid rgba(128, 128, 128, 0.25);
     border-radius: 18px;
-    padding: 20px 30px 18px 30px;
-    box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
+    padding: 24px 30px 20px 30px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
 }
+
 .login-title {
     text-align: center;
     font-size: 2rem;
     font-weight: 800;
-    color: #2563eb;
+    color: #3b82f6;
     line-height: 1.2;
     margin-bottom: 5px;
 }
+
 .login-subtitle {
     text-align: center;
-    color: #6b7280;
+    opacity: 0.8;
     margin-bottom: 12px;
 }
+
 .login-icon {
     text-align: center;
     font-size: 2.7rem;
     margin-bottom: 2px;
 }
+
 .captcha-display {
-    background: #f8fafc;
+    background: rgba(59, 130, 246, 0.1);
     border: 1px dashed #3b82f6;
     border-radius: 10px;
     padding: 9px;
     text-align: center;
-    color: #1e40af;
+    color: #3b82f6;
     font-size: 1.05rem;
     font-weight: 800;
     letter-spacing: 2px;
     margin: 6px 0 8px 0;
 }
+
+/* PREDICTION BOXES */
 .prediction-box-high {
-    background: #fef2f2;
+    background: rgba(239, 68, 68, 0.1);
     border: 2px solid #ef4444;
     border-radius: 14px;
     padding: 20px;
     text-align: center;
-    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15);
     margin-top: 10px;
 }
+
 .prediction-box-std {
-    background: #f0fdf4;
+    background: rgba(34, 197, 94, 0.1);
     border: 2px solid #22c55e;
     border-radius: 14px;
     padding: 20px;
     text-align: center;
-    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.15);
     margin-top: 10px;
 }
 </style>
@@ -436,10 +436,9 @@ def money(x):
 
 def chart(fig, height=380):
     fig.update_layout(
-        template="plotly_white",
-        paper_bgcolor="rgba(255,255,255,0)",
-        plot_bgcolor="rgba(255,255,255,0)",
-        font=dict(color="#374151"),
+        template="none",  # Inherits Streamlit theme (Light/Dark auto-switch)
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
         margin=dict(l=20, r=20, t=55, b=20),
         height=height
     )
@@ -599,17 +598,17 @@ if st.button("🛡️ Simulate Underwriting Risk Assessment", type="primary", us
     if is_high_risk:
         st.markdown("""
         <div class="prediction-box-high">
-            <h3 style="color:#dc2626;margin:0;">Risk Classification Result</h3>
+            <h3 style="color:#ef4444;margin:0;">Risk Classification Result</h3>
             <h1 style="color:#ef4444;font-size:2.8rem;margin:10px 0;">HIGH RISK</h1>
-            <p style="color:#991b1b;margin:0;">Applicant breached risk thresholds (Low Credit Score, High Utilization, or Excessive Missed Payments).</p>
+            <p style="margin:0;opacity:0.9;">Applicant breached risk thresholds (Low Credit Score, High Utilization, or Excessive Missed Payments).</p>
         </div>
         """, unsafe_allow_html=True)
     else:
         st.markdown("""
         <div class="prediction-box-std">
-            <h3 style="color:#16a34a;margin:0;">Risk Classification Result</h3>
+            <h3 style="color:#22c55e;margin:0;">Risk Classification Result</h3>
             <h1 style="color:#22c55e;font-size:2.8rem;margin:10px 0;">STANDARD RISK</h1>
-            <p style="color:#166534;margin:0;">Applicant profile is within safe credit operational parameters.</p>
+            <p style="margin:0;opacity:0.9;">Applicant profile is within safe credit operational parameters.</p>
         </div>
         """, unsafe_allow_html=True)
 
