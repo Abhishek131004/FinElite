@@ -8,12 +8,10 @@ import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 
-from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
-from sklearn.linear_model import LinearRegression
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
-from xgboost import XGBRegressor
-from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
 # ============================================================
 # PAGE CONFIG
@@ -163,13 +161,22 @@ section[data-testid="stSidebar"] * {
     letter-spacing: 2px;
     margin: 6px 0 8px 0;
 }
-.prediction-box {
-    background: #ffffff;
-    border: 2px solid #2563eb;
+.prediction-box-high {
+    background: #fef2f2;
+    border: 2px solid #ef4444;
     border-radius: 14px;
     padding: 20px;
     text-align: center;
-    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.15);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15);
+    margin-top: 10px;
+}
+.prediction-box-std {
+    background: #f0fdf4;
+    border: 2px solid #22c55e;
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.15);
     margin-top: 10px;
 }
 </style>
@@ -269,6 +276,7 @@ def generate_mock_data(n=400):
     utilization = np.random.uniform(5, 95, n)
     spending = annual_income * np.random.uniform(0.1, 0.4, n) / 12
     missed_payments = np.random.choice([0, 1, 2, 3, 4], n, p=[0.7, 0.15, 0.08, 0.04, 0.03])
+    late_payments = missed_payments + np.random.randint(0, 3, n)
     defaults = np.where(missed_payments > 2, 1, 0)
     
     credit_limit = (annual_income * 0.3) + (credit_score * 150) - (utilization * 200) + np.random.normal(0, 10000, n)
@@ -279,6 +287,7 @@ def generate_mock_data(n=400):
         "Age": age,
         "Gender": np.random.choice(["Male", "Female"], n),
         "Employment_Type": np.random.choice(["Salaried", "Self-Employed", "Business"], n),
+        "Occupation": np.random.choice(["IT & Tech", "Healthcare", "Finance", "Retail", "Manufacturing"], n),
         "Residential_Status": np.random.choice(["Owned", "Rented", "Mortgaged"], n),
         "KYC_Status": np.random.choice(["Complete", "Pending"], n, p=[0.9, 0.1]),
         "Fraud_Flag": np.random.choice(["No", "Yes"], n, p=[0.95, 0.05]),
@@ -287,6 +296,7 @@ def generate_mock_data(n=400):
         "Credit_Utilization": utilization,
         "Avg_Monthly_Spending": spending,
         "Missed_Payments": missed_payments,
+        "Late_Payment_Count": late_payments,
         "Number_of_Defaults": defaults,
         "Credit_Limit": credit_limit
     })
@@ -500,164 +510,106 @@ with c3:
         chart(px.scatter(f, x="Annual_Income", y="Avg_Monthly_Spending", color="Credit_Score" if "Credit_Score" in f.columns else None, title="💵 Income vs Monthly Spending"), 360)
 
 # ============================================================
-# EDA CORRELATION HEATMAP
+# 🚨 CREDIT RISK & DECISION INTELLIGENCE
 # ============================================================
-st.markdown("#### 🔍 Feature Correlation Matrix")
+st.markdown('<div class="section-title">🚨 Credit Risk & Decision Intelligence</div>', unsafe_allow_html=True)
+st.write("Monitor default indicators, analyze risk drivers across segments, and evaluate real-time exposure.")
+
+# 1. Portfolio Risk Metrics
+st.markdown("#### 📈 Portfolio Risk Metrics")
+m1, m2, m3, m4 = st.columns(4)
+
+def_rate_val = (f["default_payment_next_month"].mean() * 100) if "default_payment_next_month" in f else 0.0
+total_defaulters = f["default_payment_next_month"].sum() if "default_payment_next_month" in f else 0
+avg_late = f["Late_Payment_Count"].mean() if "Late_Payment_Count" in f else 0.0
+high_risk_exposure = (f["High_Risk_Flag"] == "High Risk").sum() if "High_Risk_Flag" in f else 0
+
+m1.metric("Default Rate", f"{def_rate_val:.2f}%")
+m2.metric("Defaulter Count", f"{total_defaulters:,}")
+m3.metric("Avg Late Payments", f"{avg_late:.2f}")
+m4.metric("High-Risk Exposure", f"{high_risk_exposure:,}")
+
+st.markdown("---")
+
+# 2. Default Drivers Breakdown
+st.markdown("#### 🧬 Default Drivers Breakdown")
+col_drv1, col_drv2 = st.columns(2)
+
+with col_drv1:
+    if {"Age_Group", "default_payment_next_month"}.issubset(f.columns):
+        age_def = f.groupby("Age_Group", observed=True)["default_payment_next_month"].mean().reset_index()
+        age_def["Default Rate (%)"] = age_def["default_payment_next_month"] * 100
+        fig_age_def = px.bar(
+            age_def, x="Age_Group", y="Default Rate (%)",
+            color="Default Rate (%)", color_continuous_scale="Reds",
+            title="Default Distribution by Demographic Age Group"
+        )
+        chart(fig_age_def, 350)
+
+with col_drv2:
+    occ_col = "Occupation" if "Occupation" in f.columns else ("Employment_Type" if "Employment_Type" in f.columns else None)
+    if occ_col and "default_payment_next_month" in f.columns:
+        occ_def = f.groupby(occ_col, observed=True)["default_payment_next_month"].mean().reset_index()
+        occ_def["Default Rate (%)"] = occ_def["default_payment_next_month"] * 100
+        fig_occ_def = px.bar(
+            occ_def, x=occ_col, y="Default Rate (%)",
+            color="Default Rate (%)", color_continuous_scale="Oranges",
+            title=f"Default Distribution by {occ_col} Segment"
+        )
+        chart(fig_occ_def, 350)
+
+st.markdown("---")
+
+# 3. Feature Correlation Engine
+st.markdown("#### 🔍 Feature Correlation Engine")
 num_df = f.select_dtypes(include=[np.number])
-if not num_df.empty:
-    corr_matrix = num_df.corr(numeric_only=True)
-    fig_corr = px.imshow(
-        corr_matrix, text_auto=".2f", aspect="auto",
-        color_continuous_scale="RdBu_r", title="Correlation Heatmap (Numeric Features)"
-    )
-    chart(fig_corr, 500)
 
-# ============================================================
-# 🤖 FAST MODEL TRAINING PIPELINE
-# ============================================================
-@st.cache_resource(show_spinner=False)
-def train_and_cache_models(data_frame):
-    df_ml = data_frame.copy()
-    df_ml = df_ml.drop(columns=["Customer_ID", "Monthly_Income", "PAN_Verified", "KYC_Status", "Age_Group", "Credit_Band", "High_Risk_Flag"], errors='ignore').dropna()
+if "default_payment_next_month" in num_df.columns:
+    corr_target = num_df.corr()["default_payment_next_month"].drop("default_payment_next_month").abs().sort_values(ascending=False).reset_index()
+    corr_target.columns = ["Feature", "Absolute Correlation"]
     
-    cat_cols = df_ml.select_dtypes(include=['object', 'category']).columns.tolist()
-    df_ml = pd.get_dummies(df_ml, columns=cat_cols, drop_first=True, dtype=float)
+    fig_corr_bar = px.bar(
+        corr_target.head(8), x="Absolute Correlation", y="Feature", orientation="h",
+        color="Absolute Correlation", color_continuous_scale="Viridis",
+        title="Top Numerical Factors Correlated with Customer Loan Defaults"
+    )
+    fig_corr_bar.update_layout(yaxis={'categoryorder': 'total ascending'})
+    chart(fig_corr_bar, 380)
 
-    X = df_ml.drop(['Credit_Limit'], axis=1)
-    y = df_ml['Credit_Limit']
+st.markdown("---")
 
-    X_train, X_test, y_train, y_test = train_test_split(X.values, y.values, test_size=0.2, random_state=42)
+# 4. Underwriter Risk Simulator
+st.markdown("#### ⚡ Underwriter Risk Simulator")
+st.write("Real-time interactive scoring tool to instantly classify new applicants based on risk profile.")
 
-    configs = {
-        "Linear Regression": (LinearRegression(), {}),
-        "Decision Tree": (DecisionTreeRegressor(random_state=42), {'max_depth': [3, 5, 10]}),
-        "Random Forest": (RandomForestRegressor(n_estimators=50, random_state=42, n_jobs=-1), {'max_depth': [5, 10]}),
-        "XGBoost": (XGBRegressor(n_estimators=50, learning_rate=0.1, random_state=42, n_jobs=-1), {'max_depth': [3, 5]})
-    }
+sim_col1, sim_col2, sim_col3 = st.columns(3)
 
-    results = []
-    best_params = {}
-    fitted_models = {}
+with sim_col1:
+    sim_score = st.slider("Credit Score", min_value=300, max_value=850, value=650, key="sim_score")
 
-    for name, (base_model, param_grid) in configs.items():
-        if param_grid:
-            grid = GridSearchCV(base_model, param_grid, scoring='r2', cv=3, n_jobs=-1, refit=True)
-            grid.fit(X_train, y_train)
-            best_model = grid.best_estimator_
-            best_score = grid.best_score_
-            best_params[name] = grid.best_params_
-        else:
-            best_model = base_model.fit(X_train, y_train)
-            best_score = cross_val_score(best_model, X_train, y_train, cv=3, scoring='r2').mean()
+with sim_col2:
+    sim_util = st.slider("Credit Utilization (%)", min_value=0.0, max_value=100.0, value=45.0, key="sim_util")
 
-        y_pred = best_model.predict(X_test)
-        r2 = r2_score(y_test, y_pred)
-        mae = mean_absolute_error(y_test, y_pred)
-        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+with sim_col3:
+    sim_missed = st.number_input("Missed Payments Count", min_value=0, max_value=20, value=1, key="sim_missed")
 
-        fitted_models[name] = best_model
-        results.append({
-            "Algorithm": name,
-            "Test R² Score (%)": r2 * 100,
-            "3-Fold CV R²": best_score,
-            "MAE": mae,
-            "RMSE": rmse
-        })
-
-    return pd.DataFrame(results), best_params, fitted_models, X.columns.tolist()
-
-# ============================================================
-# 🤖 MACHINE LEARNING DASHBOARD & PREDICTION PIPELINE
-# ============================================================
-st.markdown('<div class="section-title">🤖 Machine Learning Models & Credit Limit Prediction</div>', unsafe_allow_html=True)
-
-if "models_trained" not in st.session_state:
-    st.session_state.models_trained = False
-
-if st.button("🚀 Run ML Model Training & Hyperparameter Tuning", type="primary"):
-    with st.spinner("Executing Data Preprocessing, Model Training & Optimization..."):
-        metrics_df, best_parameters, fitted_models, feature_columns = train_and_cache_models(df)
-        st.session_state.metrics_df = metrics_df
-        st.session_state.best_parameters = best_parameters
-        st.session_state.fitted_models = fitted_models
-        st.session_state.feature_columns = feature_columns
-        st.session_state.models_trained = True
-        st.success("✅ Training & Evaluation Finished!")
-
-if st.session_state.models_trained:
-    st.markdown("### 📊 Model Performance Comparison")
-    st.dataframe(st.session_state.metrics_df.style.format({
-        "Test R² Score (%)": "{:.2f}%",
-        "3-Fold CV R²": "{:.4f}",
-        "MAE": "₹{:,.2f}",
-        "RMSE": "₹{:,.2f}"
-    }), use_container_width=True)
-
-    st.markdown("### ⚙️ Optimal Hyperparameters Found")
-    col_a, col_b, col_c = st.columns(3)
-    col_a.json({"Decision Tree": st.session_state.best_parameters.get("Decision Tree", {})})
-    col_b.json({"Random Forest": st.session_state.best_parameters.get("Random Forest", {})})
-    col_c.json({"XGBoost": st.session_state.best_parameters.get("XGBoost", {})})
-
-    # ============================================================
-    # 🎯 REAL-TIME USER PREDICTION DASHBOARD
-    # ============================================================
-    st.markdown('<div class="section-title">🎯 Real-Time Credit Limit Predictor</div>', unsafe_allow_html=True)
-    st.write("Select custom customer profile parameters to compute estimated credit limits instantly.")
-
-    pred_col1, pred_col2, pred_col3 = st.columns(3)
-
-    with pred_col1:
-        input_age = st.number_input("Age", min_value=18, max_value=100, value=30)
-        input_income = st.number_input("Annual Income (₹)", min_value=50000.0, max_value=10000000.0, value=600000.0, step=25000.0)
-        input_score = st.slider("Credit Score", min_value=300, max_value=850, value=720)
-        input_util = st.slider("Credit Utilization (%)", min_value=0.0, max_value=100.0, value=25.0)
-
-    with pred_col2:
-        input_gender = st.selectbox("Gender", df["Gender"].dropna().unique() if "Gender" in df else ["Male", "Female"])
-        input_emp = st.selectbox("Employment Type", df["Employment_Type"].dropna().unique() if "Employment_Type" in df else ["Salaried", "Self-Employed", "Business"])
-        input_res = st.selectbox("Residential Status", df["Residential_Status"].dropna().unique() if "Residential_Status" in df else ["Owned", "Rented", "Mortgaged"])
-        input_spending = st.number_input("Avg Monthly Spending (₹)", min_value=0.0, max_value=500000.0, value=25000.0, step=5000.0)
-
-    with pred_col3:
-        input_missed = st.number_input("Missed Payments", min_value=0, max_value=20, value=0)
-        input_defaults = st.number_input("Number of Defaults", min_value=0, max_value=10, value=0)
-        selected_algo = st.selectbox("Select Trained Model for Inference", list(st.session_state.fitted_models.keys()), index=3)
-
-    if st.button("🔮 Predict Credit Limit", type="primary", use_container_width=True):
-        # Prepare Input Data Match Trained Feature Space
-        input_dict = {
-            "Age": input_age,
-            "Annual_Income": input_income,
-            "Credit_Score": input_score,
-            "Credit_Utilization": input_util,
-            "Avg_Monthly_Spending": input_spending,
-            "Missed_Payments": input_missed,
-            "Number_of_Defaults": input_defaults,
-            "default_payment_next_month": 1 if input_defaults > 0 else 0,
-            f"Gender_{input_gender}": 1.0,
-            f"Employment_Type_{input_emp}": 1.0,
-            f"Residential_Status_{input_res}": 1.0
-        }
-
-        # Align with original feature schema
-        input_df = pd.DataFrame([input_dict])
-        for col in st.session_state.feature_columns:
-            if col not in input_df.columns:
-                input_df[col] = 0.0
-
-        input_df = input_df[st.session_state.feature_columns]
-
-        # Execute Prediction
-        model_to_use = st.session_state.fitted_models[selected_algo]
-        predicted_limit = model_to_use.predict(input_df.values)[0]
-        predicted_limit = max(10000.0, float(predicted_limit))
-
-        st.markdown(f"""
-        <div class="prediction-box">
-            <h3 style="color:#6b7280;margin:0;">Estimated Credit Limit ({selected_algo})</h3>
-            <h1 style="color:#2563eb;font-size:2.8rem;margin:10px 0;">{money(predicted_limit)}</h1>
-            <p style="color:#374151;margin:0;">Calculated based on real-time parameter configuration.</p>
+if st.button("🛡️ Simulate Underwriting Risk Assessment", type="primary", use_container_width=True):
+    is_high_risk = (sim_score < 600) or (sim_util > 75.0) or (sim_missed >= 3)
+    
+    if is_high_risk:
+        st.markdown("""
+        <div class="prediction-box-high">
+            <h3 style="color:#dc2626;margin:0;">Risk Classification Result</h3>
+            <h1 style="color:#ef4444;font-size:2.8rem;margin:10px 0;">HIGH RISK</h1>
+            <p style="color:#991b1b;margin:0;">Applicant breached risk thresholds (Low Credit Score, High Utilization, or Excessive Missed Payments).</p>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="prediction-box-std">
+            <h3 style="color:#16a34a;margin:0;">Risk Classification Result</h3>
+            <h1 style="color:#22c55e;font-size:2.8rem;margin:10px 0;">STANDARD RISK</h1>
+            <p style="color:#166534;margin:0;">Applicant profile is within safe credit operational parameters.</p>
         </div>
         """, unsafe_allow_html=True)
 
