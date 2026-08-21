@@ -434,13 +434,16 @@ def money(x):
     if abs(x) >= 1e5: return f"₹{x/1e5:.2f} L"
     return f"₹{x:,.0f}"
 
-def chart(fig, height=380):
+def chart(fig, height=440):
     fig.update_layout(
-        template="none",  # Inherits Streamlit theme (Light/Dark auto-switch)
+        template="none",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=20, r=20, t=55, b=20),
-        height=height
+        margin=dict(l=80, r=40, t=65, b=80),  # Increased margins so axis titles & labels don't overlap
+        height=height,
+        title_font=dict(size=14),
+        xaxis=dict(title_standoff=15, automargin=True),
+        yaxis=dict(title_standoff=15, automargin=True)
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -494,19 +497,19 @@ if dim in f.columns and "Avg_Monthly_Spending" in f.columns:
         fig = px.box(f, x=dim, y="Avg_Monthly_Spending", color=dim, points="outliers", title=f"Spending Distribution by {dim_label}")
     else:
         fig = px.violin(f, x=dim, y="Avg_Monthly_Spending", color=dim, box=True, title=f"Spending Pattern by {dim_label}")
-    chart(fig, 400)
+    chart(fig, 420)
 
 c1, c2, c3 = st.columns(3)
 with c1:
     if "Avg_Monthly_Spending" in f.columns:
-        chart(px.histogram(f, x="Avg_Monthly_Spending", nbins=30, marginal="box", title="💰 Monthly Spending Distribution"), 360)
+        chart(px.histogram(f, x="Avg_Monthly_Spending", nbins=30, marginal="box", title="💰 Monthly Spending Distribution"), 420)
 with c2:
     if {"Age_Group", "Avg_Monthly_Spending"}.issubset(f.columns):
         age_spend = f.groupby("Age_Group", observed=True)["Avg_Monthly_Spending"].mean().reset_index()
-        chart(px.bar(age_spend, x="Age_Group", y="Avg_Monthly_Spending", color="Avg_Monthly_Spending", title="👥 Average Spending by Age Group"), 360)
+        chart(px.bar(age_spend, x="Age_Group", y="Avg_Monthly_Spending", color="Avg_Monthly_Spending", title="👥 Average Spending by Age Group"), 420)
 with c3:
     if {"Annual_Income", "Avg_Monthly_Spending"}.issubset(f.columns):
-        chart(px.scatter(f, x="Annual_Income", y="Avg_Monthly_Spending", color="Credit_Score" if "Credit_Score" in f.columns else None, title="💵 Income vs Monthly Spending"), 360)
+        chart(px.scatter(f, x="Annual_Income", y="Avg_Monthly_Spending", color="Credit_Score" if "Credit_Score" in f.columns else None, title="💵 Income vs Monthly Spending"), 420)
 
 # ============================================================
 # 🚨 CREDIT RISK & DECISION INTELLIGENCE
@@ -543,7 +546,7 @@ with col_drv1:
             color="Default Rate (%)", color_continuous_scale="Reds",
             title="Default Distribution by Demographic Age Group"
         )
-        chart(fig_age_def, 350)
+        chart(fig_age_def, 420)
 
 with col_drv2:
     occ_col = "Occupation" if "Occupation" in f.columns else ("Employment_Type" if "Employment_Type" in f.columns else None)
@@ -555,7 +558,9 @@ with col_drv2:
             color="Default Rate (%)", color_continuous_scale="Oranges",
             title=f"Default Distribution by {occ_col} Segment"
         )
-        chart(fig_occ_def, 350)
+        # Angled labels so occupation names don't clash with axis titles
+        fig_occ_def.update_xaxes(tickangle=-30)
+        chart(fig_occ_def, 420)
 
 st.markdown("---")
 
@@ -573,7 +578,7 @@ if "default_payment_next_month" in num_df.columns:
         title="Top Numerical Factors Correlated with Customer Loan Defaults"
     )
     fig_corr_bar.update_layout(yaxis={'categoryorder': 'total ascending'})
-    chart(fig_corr_bar, 380)
+    chart(fig_corr_bar, 450)
 
 st.markdown("---")
 
